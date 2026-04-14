@@ -11,7 +11,9 @@ import com.example.progettoesame.ui.screens.NewRecipeScreen
 import com.example.progettoesame.ui.screens.ProfileScreen
 import com.example.progettoesame.ui.screens.RecipeScreen
 import com.example.progettoesame.ui.screens.SettingScreen
+import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 sealed interface NavigationRoute {
     @Serializable data object Home : NavigationRoute
@@ -30,6 +32,8 @@ fun NavGraph(navController: NavHostController) {
     ) {
         composable<NavigationRoute.Home> { HomeScreen(navController) }
         composable<NavigationRoute.CategoryRecipes> { backStackEntry ->
+            //Inserire l'inizializzazione del ViewModel prima del composable e passarlo come parametro
+            val categoryVm = koinViewModel<CategoryViewModel>()
             val route = backStackEntry.toRoute<NavigationRoute.CategoryRecipes>()
             CategoryScreen(navController, route.categoryId)
         }
