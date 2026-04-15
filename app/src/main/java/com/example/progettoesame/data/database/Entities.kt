@@ -1,62 +1,82 @@
 package com.example.progettoesame.data.database
 
-import android.media.Image
-import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.sql.Time
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Entity
+@Serializable
+@Entity(tableName = "categories")
 data class Category (
-    @PrimaryKey val categoryId : Int,
-    @ColumnInfo val name : String
+    @PrimaryKey
+    @SerialName("category_id")
+    val categoryId : String,
+    @SerialName("name") val name : String,
+    @SerialName("order") val order : Int
 )
 
-@Entity
+@Serializable
+@Entity(tableName = "users")
 data class User (
-    @PrimaryKey(autoGenerate = true) val userId: Int,
-    @ColumnInfo val username : String,
-    @ColumnInfo val password : String,
-    @ColumnInfo val email : String,
-    @ColumnInfo val recipeNumber : Int = 0,
-    @ColumnInfo val mean : Float = 0.0f
+    @PrimaryKey(autoGenerate = true)
+    @SerialName("user_id")
+    val userId: String,
+    @SerialName("username") val username : String,
+    @SerialName("password") val password : String,
+    @SerialName("email") val email : String,
+    @SerialName("recipe_number") val recipeNumber : Int = 0,
+    @SerialName("average_rating") val averageRating : Float = 0.0f,
+    @SerialName("updated_at") val updatedAt : String
 )
 
+@Serializable
 data class Times (
-    @ColumnInfo val preparation : Time,
-    @ColumnInfo val waiting : Time?,
-    @ColumnInfo val cocking : Time,
+    @SerialName("preparation_minutes") val preparation : Int,
+    @SerialName("waiting_minutes") val waiting : Int?,
+    @SerialName("cooking_minutes") val cooking : Int,
 )
 
+@Serializable
 data class Ingredient (
-    @ColumnInfo val name : String,
-    @ColumnInfo val quantity : Float,
-    @ColumnInfo val unit : String
+    @SerialName("ingredient_name") val name : String,
+    @SerialName("quantity") val quantity : Float,
+    @SerialName("unit") val unit : String, //enum di kg, g, ml, L
+    @SerialName("updated_at") val updatedAt : String,
+    @SerialName("is_deleted") val isDeleted: Boolean = false
 )
 
+@Serializable
 data class Step (
-    @ColumnInfo val number : Int,
-    @ColumnInfo val images: List<Image>,
-    @ColumnInfo val description : String
+    @SerialName("step_number") val number : Int, //Autoincrement da 1
+    val imageUrls: List<String>,
+    @SerialName("description") val description : String,
+    @SerialName("updated_at") val updatedAt : String,
+    @SerialName("is_deleted") val isDeleted: Boolean = false
 )
 
-@Entity(primaryKeys = ["title", "author", "categoryId"])
+@Serializable
+@Entity(tableName = "recipes")
 data class Recipe (
-    @ColumnInfo val title : String,
-    @ColumnInfo val author : Int,
-    @ColumnInfo val category : Int,
-    @ColumnInfo val previewImage : Image,
+    @PrimaryKey
+    @SerialName("recipe_id") val recipeId : String,
+    @SerialName("title") val title : String,
+    @SerialName("author_id") val author : String,
+    @SerialName("category_id") val category : String,
+    @SerialName("preview_image_url") val previewImageUrl : String,
     @Embedded val times : Times,
-    @Embedded val ingredients : List<Ingredient>,
-    @Embedded val steps : List<Step>,
-    @ColumnInfo val mean : Float = 0.0f
+    val ingredients : List<Ingredient>,
+    val steps : List<Step>,
+    @SerialName("average_rating") val averageRating : Float = 0.0f,
+    @SerialName("updated_at") val updatedAt : String,
+    @SerialName("is_deleted") val isDeleted: Boolean = false
 )
 
-@Entity(primaryKeys = ["userId", "title", "author", "categoryId"])
+@Serializable
+@Entity(tableName = "user_favourite_recipes", primaryKeys = ["userId", "recipeId"])
 data class UserFavourite (
-    @ColumnInfo val userId: Int,
-    @ColumnInfo val title : String,
-    @ColumnInfo val author : Int,
-    @ColumnInfo val category : Int
+    @SerialName("user_id") val userId: String,
+    @SerialName("recipe_id") val recipeId : String,
+    @SerialName("updated_at") val updatedAt : String,
+    @SerialName("is_deleted") val isDeleted: Boolean = false
 )
