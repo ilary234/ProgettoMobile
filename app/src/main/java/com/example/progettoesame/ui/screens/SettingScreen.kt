@@ -1,7 +1,6 @@
 package com.example.progettoesame.ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,10 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.FlowRow
+import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.NavigationRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(navController: NavController, userId: Int) {
+fun SettingScreen(navController: NavHostController, userId: Int) {
     var isDarkTheme by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -50,11 +51,11 @@ fun SettingScreen(navController: NavController, userId: Int) {
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            SettingsItem(icon = Icons.Default.Lock, label = "Cambia Password", hasArrow = true)
+            SettingsItem(icon = Icons.Default.Lock, label = "Cambia Password", hasArrow = true, onClick = { navController.navigate(NavigationRoute.ChangePassword) })
             Spacer(modifier = Modifier.height(12.dp))
-            SettingsItem(icon = Icons.Default.Person, label = "Modifica Profilo", hasArrow = true)
+            SettingsItem(icon = Icons.Default.Person, label = "Modifica Profilo", hasArrow = true, onClick = { navController.navigate(NavigationRoute.EditProfile(userId))})
             Spacer(modifier = Modifier.height(12.dp))
-            SettingsItem(icon = Icons.Default.ExitToApp, label = "Esci dall'account", hasArrow = false)
+            SettingsItem(icon = Icons.Default.ExitToApp, label = "Esci dall'account", hasArrow = false, onClick = { navController.navigate(NavigationRoute.Login) })
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -135,13 +136,12 @@ fun SettingScreen(navController: NavController, userId: Int) {
 }
 
 @Composable
-fun SettingsItem(icon: ImageVector, label: String, hasArrow: Boolean) {
+fun SettingsItem(icon: ImageVector, label: String, hasArrow: Boolean, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = Color(0xFFF2F2F2),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Azione al click */ }
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

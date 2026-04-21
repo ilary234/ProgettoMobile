@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.RecipeCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController)  {
+fun HomeScreen(navController: NavHostController)  {
     var isMenuOpen by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -33,7 +35,12 @@ fun HomeScreen(navController: NavController)  {
             topBar = {
                 // alpha per nascondere senza rimuovere lo spazio
                 Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
-                    HomeTopBar(onMenuClick = { isMenuOpen = true })
+                    HomeTopBar(
+                        onMenuClick = { isMenuOpen = true },
+                        onProfileClick = {
+                            navController.navigate(NavigationRoute.Profile(userId = 1)) // da sistemare
+                        }
+                    )
                 }
             }
         ) { paddingValues ->
@@ -108,7 +115,7 @@ fun HomeScreen(navController: NavController)  {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(onMenuClick: () -> Unit) {
+fun HomeTopBar(onMenuClick: () -> Unit, onProfileClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,7 +132,7 @@ fun HomeTopBar(onMenuClick: () -> Unit) {
                 }
             },
             actions = {
-                IconButton(onClick = { }) {
+                IconButton(onClick = onProfileClick) {
                     Icon(Icons.Default.AccountCircle, contentDescription = "Profilo")
                 }
             }
