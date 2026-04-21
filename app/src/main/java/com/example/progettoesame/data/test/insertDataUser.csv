@@ -1,0 +1,4 @@
+username,password,email,recipe_number,average_rating,updated_at
+ChefMatilde,Pass123!,matilde@example.it,12,4.8,2026-04-21 10:00:00
+LucaPasta,Miamiamia88,luca88@gmail.com,5,3.5,2026-04-20 15:30:00
+ElenaGreen,VegPower2024,elena.veg@outlook.com,2,4.9,2026-04-21 09:15:00
