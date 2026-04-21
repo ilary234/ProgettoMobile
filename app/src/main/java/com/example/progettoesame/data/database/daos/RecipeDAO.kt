@@ -14,6 +14,9 @@ interface RecipeDAO {
     @Query("UPDATE recipes SET isSynced = 1 WHERE recipeId = :id")
     suspend fun markAsSynced(id: String)
 
+    @Query("UPDATE recipes SET isSynced = 1")
+    suspend fun markAllRecipesAsSynced()
+
     @Query("SELECT MAX(updatedAt) FROM recipes")
     suspend fun getLastUpdateTimestamp(): String?
 

@@ -15,7 +15,6 @@ data class Category (
     val categoryId : String,
     @SerialName("name") val name : String,
     @SerialName("order") val order : Int,
-    @Transient val isSynced: Boolean = false
 )
 
 @Serializable
