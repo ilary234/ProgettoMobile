@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progettoesame.data.database.Recipe
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecipeDAO {

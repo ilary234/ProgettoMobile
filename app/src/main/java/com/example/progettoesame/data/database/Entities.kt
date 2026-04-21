@@ -21,7 +21,7 @@ data class Category (
 @Serializable
 @Entity(tableName = "users")
 data class User (
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     @SerialName("user_id")
     val userId: String,
     @SerialName("username") val username : String,

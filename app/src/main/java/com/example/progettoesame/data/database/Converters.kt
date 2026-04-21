@@ -1,9 +1,10 @@
 package com.example.progettoesame.data.database
 
 import androidx.room.TypeConverter
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class TypeConverters {
+class Converters {
     private val json = Json { ignoreUnknownKeys = true }
 
     @TypeConverter
