@@ -4,25 +4,36 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.progettoesame.ui.NavGraph
 import com.example.progettoesame.ui.theme.ProgettoEsameTheme
+import com.example.progettoesame.ui.viewmodels.SplashViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
+    private val splashViewModel: SplashViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        splashScreen.setKeepOnScreenCondition {
+            !splashViewModel.isReady.value
+        }
         setContent {
             ProgettoEsameTheme {
                 val navController = rememberNavController()
-                NavGraph(navController)
+                val startDestination by splashViewModel.startDestination.collectAsStateWithLifecycle()
+                startDestination?.let { destination ->
+                    NavGraph(
+                        navController = navController,
+                        startDestination = destination
+                    )
+                }
             }
         }
     }
