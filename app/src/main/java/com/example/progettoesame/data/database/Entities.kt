@@ -34,13 +34,6 @@ data class User (
 )
 
 @Serializable
-data class Times (
-    @SerialName("preparation_minutes") val preparation : Int,
-    @SerialName("waiting_minutes") val waiting : Int?,
-    @SerialName("cooking_minutes") val cooking : Int,
-)
-
-@Serializable
 data class Ingredient (
     @SerialName("ingredient_name") val name : String,
     @SerialName("quantity") val quantity : Float,
@@ -69,7 +62,9 @@ data class Recipe (
     @SerialName("author_id") val author : String,
     @SerialName("category_id") val category : String,
     @SerialName("preview_image_url") val previewImageUrl : String,
-    @Embedded val times : Times,
+    @SerialName("preparation_minutes") val preparation : Int,
+    @SerialName("waiting_minutes") val waiting : Int?,
+    @SerialName("cooking_minutes") val cooking : Int,
     val ingredients : List<Ingredient>,
     val steps : List<Step>,
     @SerialName("average_rating") val averageRating : Float = 0.0f,

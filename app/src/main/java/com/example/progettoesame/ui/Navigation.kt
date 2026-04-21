@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.progettoesame.ui.screens.CategoryScreen
 import com.example.progettoesame.ui.screens.HomeScreen
+import com.example.progettoesame.ui.screens.InitialErrorScreen
 import com.example.progettoesame.ui.screens.NewRecipeScreen
 import com.example.progettoesame.ui.screens.ProfileScreen
 import com.example.progettoesame.ui.screens.RecipeScreen
@@ -17,6 +18,7 @@ import org.koin.androidx.compose.koinViewModel
 
 sealed interface NavigationRoute {
     @Serializable data object Home : NavigationRoute
+    @Serializable data object Error : NavigationRoute
     @Serializable data class CategoryRecipes(val categoryId : Int) : NavigationRoute
     @Serializable data class RecipeDetails(val recipeId : Int) : NavigationRoute
     @Serializable data object NewRecipe : NavigationRoute
@@ -25,12 +27,13 @@ sealed interface NavigationRoute {
 }
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController, startDestination: NavigationRoute) {
     NavHost(
         navController = navController,
-        startDestination = NavigationRoute.Home
+        startDestination = startDestination
     ) {
         composable<NavigationRoute.Home> { HomeScreen(navController) }
+        composable<NavigationRoute.Error> { InitialErrorScreen(navController) }
         composable<NavigationRoute.CategoryRecipes> { backStackEntry ->
             //Inserire l'inizializzazione del ViewModel prima del composable e passarlo come parametro
             val categoryVm = koinViewModel<CategoryViewModel>()
