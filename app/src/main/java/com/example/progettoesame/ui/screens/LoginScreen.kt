@@ -14,8 +14,6 @@ fun LoginScreen(navController: NavHostController, onNavigateToSignUp: () -> Unit
         title = "Bentornato",
         subtitle = "Accedi per continuare",
         buttonText = "Accedi",
-        socialGoogleText = "Accedi con Google",
-        socialAppleText = "Accedi con Apple",
         onButtonClick = { email, pass, _ -> /* Login */ },
         footerText = buildAnnotatedString {
             append("Non hai un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Registrati") }
