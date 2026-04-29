@@ -7,8 +7,10 @@ import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
 import com.example.progettoesame.data.repositories.CategoryRepository
+import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
+import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
@@ -44,10 +46,15 @@ val appModule = module {
                                   get<ProjectDatabase>().UserDAO(),
                           get<ProjectDatabase>().UserFavouriteDAO(),
                                            supabase, get()) }
-    viewModel { SplashViewModel(get()) }
 
-    single { CategoryRepository(get<ProjectDatabase>().RecipeDAO(), get()) }
+    single { SyncRepository(get<ProjectDatabase>().RecipeDAO(),
+                              get<ProjectDatabase>().UserDAO(),
+                       get<ProjectDatabase>().UserFavouriteDAO(), get()) }
+    single { CategoryRepository(get<ProjectDatabase>().RecipeDAO()) }
+
+    viewModel { SplashViewModel(get()) }
     viewModel { CategoryViewModel(get()) }
+    viewModel { InitialErrorViewModel(get()) }
 
     //Stessa cosa per gli altri repository e viewModel
     worker { SyncWorker(get(), get(), get()) }

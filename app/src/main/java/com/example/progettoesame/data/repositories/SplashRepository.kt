@@ -22,21 +22,26 @@ class SplashRepository(private val categoryDAO: CategoryDAO,
     suspend fun prepareData(): Boolean {
         try {
             val count = categoryDAO.getCount()
-            if (count == 0 && syncManager.isOnline()) {
-                val categories = supabase.from("categories").select().decodeList<Category>()
-                categoryDAO.insertAll(categories)
+            if (count == 0) {
+                if (syncManager.isOnline()) {
+                    val categories = supabase.from("categories").select().decodeList<Category>()
+                    categoryDAO.insertAll(categories)
 
-                val recipes = supabase.from("recipes").select().decodeList<Recipe>()
-                recipeDAO.upsertAll(recipes)
-                recipeDAO.markAllRecipesAsSynced()
+                    val recipes = supabase.from("recipes").select().decodeList<Recipe>()
+                    recipeDAO.upsertAll(recipes)
+                    recipeDAO.markAllRecipesAsSynced()
 
-                val users = supabase.from("users").select().decodeList<User>()
-                userDAO.insertAll(users)
-                userDAO.markAllUsersAsSynced()
+                    val users = supabase.from("users").select().decodeList<User>()
+                    userDAO.upsertAll(users)
+                    userDAO.markAllUsersAsSynced()
 
-                val usersFavourites = supabase.from("user_favourite_recipes").select().decodeList<UserFavourite>()
-                userFavouriteDAO.insertAll(usersFavourites)
-                userFavouriteDAO.markAllUsersFavouriteAsSynced()
+                    val usersFavourites = supabase.from("user_favourite_recipes").select().decodeList<UserFavourite>()
+                    userFavouriteDAO.upsertAll(usersFavourites)
+                    userFavouriteDAO.markAllUsersFavouriteAsSynced()
+                    return true
+                } else {
+                    return false
+                }
             }
             return true
         } catch (e: Exception) {
