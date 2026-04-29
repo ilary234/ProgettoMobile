@@ -143,8 +143,6 @@ fun AuthScreenTemplate(
         Spacer(modifier = Modifier.height(24.dp))
 
         SocialLoginButton(text = "Continua con Google", iconRes = R.drawable.ic_google)
-        Spacer(modifier = Modifier.height(12.dp))
-        SocialLoginButton(text = "Continua con Apple", iconRes = R.drawable.ic_apple)
 
         Spacer(modifier = Modifier.height(12.dp))
 
