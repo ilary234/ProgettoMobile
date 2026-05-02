@@ -10,12 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.progettoesame.R // pacchetto probabilmente da modificare
 
 @Composable
@@ -79,25 +81,27 @@ fun RecipeCard(title: String, time: String, rating: Double) {
 }
 
 @Composable
-fun PreviewCard(imageUrl: String) {
+fun PreviewCard(imageUrl: String, recipeName: String) {
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
     ) {
-        // Placeholder per l'immagine - Sostituisci R.drawable.food_placeholder con la tua risorsa
-        /*Image(
-           painter = painterResource(id = R.drawable.food_placeholder),
-           contentDescription = null,
-           contentScale = ContentScale.Crop,
-           modifier = Modifier.fillMaxSize()
-       )*/
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Immagine di anteprima della ricetta: $recipeName",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop,
+            error = painterResource(R.drawable.ic_image_error)
+        )
     }
 }
 
 @Composable
-fun infoPreview(title: String, time: String, rating: Double) {
+fun InfoPreview(title: String, time: String, rating: Float) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,

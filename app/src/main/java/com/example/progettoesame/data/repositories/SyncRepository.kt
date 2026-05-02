@@ -10,6 +10,7 @@ import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.daos.UserFavouriteDAO
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 
 class SyncRepository(private val recipeDAO: RecipeDAO,
                      private val userDAO: UserDAO,
@@ -71,6 +72,20 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
             }
         } catch (e: Exception) {
             Log.e("Sync", "Errore durante la pull", e)
+        }
+    }
+
+    suspend fun uploadImage(fileName: String, imageBytes: ByteArray): String? {
+        return try {
+            val bucket = supabase.storage.from("Ricette")
+            bucket.upload(path = fileName, data = imageBytes) {
+                upsert = true
+            }
+
+            val url = bucket.publicUrl(fileName)
+            url
+        } catch (e: Exception) {
+            null
         }
     }
 }

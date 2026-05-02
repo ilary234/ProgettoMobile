@@ -52,6 +52,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
 postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt" }
 auth-kt = { group = "io.github.jan-tennert.supabase", name = "auth-kt" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
