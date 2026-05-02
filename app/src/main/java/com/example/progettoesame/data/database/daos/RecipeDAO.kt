@@ -26,6 +26,6 @@ interface RecipeDAO {
     @Upsert
     suspend fun upsert(recipe: Recipe)
 
-    @Query("SELECT * FROM recipes WHERE category = :categoryId")
+    @Query("SELECT * FROM recipes WHERE category = :categoryId and isDeleted = 0")
     suspend fun getRecipesFromCategory(categoryId: String) : List<Recipe>
 }

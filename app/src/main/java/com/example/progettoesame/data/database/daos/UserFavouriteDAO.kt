@@ -20,6 +20,9 @@ interface UserFavouriteDAO {
     @Query("SELECT MAX(updatedAt) FROM user_favourite_recipes")
     suspend fun getLastUpdateTimestamp(): String?
 
+    @Query("SELECT * FROM user_favourite_recipes WHERE userId = :userId and isDeleted = 0")
+    suspend fun getUserFavorites(userId: String) : List<UserFavourite>
+
     @Upsert
     suspend fun upsert(userFavourite: UserFavourite)
 
