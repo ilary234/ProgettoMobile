@@ -31,7 +31,7 @@ class SyncManager(private val context: Context) {
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "supabase_sync_task",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             syncRequest
         )
     }
