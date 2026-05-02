@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.ui.screens.CategoryScreen
 import com.example.progettoesame.ui.screens.ChangePasswordScreen
 import com.example.progettoesame.ui.screens.EditProfileScreen
@@ -18,16 +19,18 @@ import com.example.progettoesame.ui.screens.RecipeScreen
 import com.example.progettoesame.ui.screens.SettingScreen
 import com.example.progettoesame.ui.screens.SignUpScreen
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
+import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 sealed interface NavigationRoute {
     @Serializable data object Login : NavigationRoute
     @Serializable data object SignUp : NavigationRoute
     @Serializable data object Home : NavigationRoute
     @Serializable data object Error : NavigationRoute
-    @Serializable data class CategoryRecipes(val categoryId : Int) : NavigationRoute
-    @Serializable data class RecipeDetails(val recipeId : Int) : NavigationRoute
+    @Serializable data class CategoryRecipes(val categoryId : String, val categoryName : String) : NavigationRoute
+    @Serializable data class RecipeDetails(val recipeId : String) : NavigationRoute
     @Serializable data object NewRecipe : NavigationRoute
     @Serializable data class Profile(val userId : Int) : NavigationRoute
     @Serializable data class Settings(val userId : Int) : NavigationRoute
@@ -54,12 +57,14 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             }
         }
         composable<NavigationRoute.Home> { HomeScreen(navController) }
-        composable<NavigationRoute.Error> { InitialErrorScreen(navController) }
+        composable<NavigationRoute.Error> {
+            val initialErrorVm = koinViewModel<InitialErrorViewModel>()
+            InitialErrorScreen(navController, initialErrorVm)
+        }
         composable<NavigationRoute.CategoryRecipes> { backStackEntry ->
-            //Inserire l'inizializzazione del ViewModel prima del composable e passarlo come parametro
             val categoryVm = koinViewModel<CategoryViewModel>()
             val route = backStackEntry.toRoute<NavigationRoute.CategoryRecipes>()
-            CategoryScreen(navController, route.categoryId)
+            CategoryScreen(navController, route.categoryId, route.categoryName, categoryVm)
         }
         composable<NavigationRoute.RecipeDetails> { backStackEntry ->
             val route = backStackEntry.toRoute<NavigationRoute.RecipeDetails>()
