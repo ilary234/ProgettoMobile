@@ -40,6 +40,7 @@ import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.InfoPreview
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.PreviewCard
+import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 
 
@@ -122,17 +123,9 @@ fun CategoryScreen(navController: NavController,
                             )
                         }
                     }
+
                     val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
-                    val hours = time / 60
-                    val minutes = time % 60
-
-                    val formattedTime = when {
-                        time < 60 -> "$time min"
-                        minutes == 0 -> "${hours} h"
-                        else -> "${hours} h ${minutes} min"
-                    }
-
-                    InfoPreview(recipe.title, formattedTime, recipe.averageRating)
+                    InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
                 }
             }
         }
