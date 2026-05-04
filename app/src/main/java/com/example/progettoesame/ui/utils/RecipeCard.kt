@@ -113,7 +113,11 @@ fun InfoPreview(title: String, time: String, rating: Float) {
         style = MaterialTheme.typography.bodySmall,
         color = Color.Gray
     )
+    RatingRow(rating)
+}
 
+@Composable
+fun RatingRow(rating: Float) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 4.dp)
@@ -135,4 +139,31 @@ fun InfoPreview(title: String, time: String, rating: Float) {
             fontSize = 12.sp
         )
     }
+}
+
+@Composable
+fun BulletPointText(text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Text("• ", fontWeight = FontWeight.Bold)
+        Text(text = text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+    }
+}
+
+@Composable
+fun LoginRequiredDialog(onDismiss: () -> Unit, onConfirm: () -> Unit){
+    AlertDialog(
+        title = {Text("Login Richiesto")},
+        text = {Text("Per aggiungere alla lista dei preferiti devi prima effettuare il login.")},
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Accedi")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annulla")
+            }
+        }
+    )
 }
