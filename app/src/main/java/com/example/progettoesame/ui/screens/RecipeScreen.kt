@@ -1,5 +1,8 @@
 package com.example.progettoesame.ui.screens
 
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,8 +22,10 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +61,7 @@ import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RatingRow
 import com.example.progettoesame.ui.utils.shareRecipe
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,8 +71,26 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     val isFavorite by recipeViewModel.isFavorite.collectAsStateWithLifecycle()
     val rating by recipeViewModel.rate.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+    var isSpeaking by remember { mutableStateOf(false) }
 
     val ctx = LocalContext.current
+
+    val tts = remember { TextToSpeech(ctx) { status ->
+        }.apply {
+            setLanguage(Locale.getDefault())
+            setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    isSpeaking = true
+                }
+                override fun onDone(utteranceId: String?) {
+                    isSpeaking = false
+                }
+                override fun onError(utteranceId: String?) {
+                    isSpeaking = false
+                }
+            })
+        }
+    }
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
@@ -88,6 +113,13 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             onDismiss = { showDialog = false },
             onConfirm = { navController.navigate(NavigationRoute.Login) }
         )
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+        }
     }
 
     Scaffold(
@@ -171,7 +203,29 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-            Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Row() {
+                Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = {
+                    if (isSpeaking) {
+                        tts.stop()
+                        isSpeaking = false
+                    } else {
+                        val text = currentRecipe.steps
+                            .sortedBy { it.number }
+                            .joinToString(separator = ". ") { it.description }
+                        val params = Bundle()
+                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "recipe_id")
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "recipe_id")
+                    }
+                }) {
+                    Icon(
+                        imageVector = if (isSpeaking) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        contentDescription = "Play/Stop text-to-speech Icon",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Gray
+                    )
+                }
+            }
             currentRecipe.steps.sortedBy { it.number }.forEach { step ->
                 val isOpen = stepsState.stepStates[step] ?: false
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
