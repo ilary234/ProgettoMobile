@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.ui.screens.CategoryScreen
 import com.example.progettoesame.ui.screens.ChangePasswordScreen
 import com.example.progettoesame.ui.screens.EditProfileScreen
@@ -23,7 +22,6 @@ import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 sealed interface NavigationRoute {
     @Serializable data object Login : NavigationRoute

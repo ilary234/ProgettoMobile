@@ -1,6 +1,5 @@
 package com.example.progettoesame.data.database
 
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName

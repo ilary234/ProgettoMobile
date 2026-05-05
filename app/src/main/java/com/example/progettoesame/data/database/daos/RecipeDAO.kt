@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progettoesame.data.database.Recipe
-import com.example.progettoesame.data.database.Step
 
 @Dao
 interface RecipeDAO {

@@ -106,6 +106,7 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
             val url = bucket.publicUrl(fileName)
             url
         } catch (e: Exception) {
+            Log.e("Sync", "Errore durante l'upload", e)
             null
         }
     }
