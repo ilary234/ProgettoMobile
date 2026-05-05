@@ -9,7 +9,7 @@ import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.daos.UserFavouriteDAO
 import com.example.progettoesame.data.database.daos.UserRatedDAO
 
-@Database([Category::class, User::class, Recipe::class, UserFavourite::class, UserRated::class], version = 1, exportSchema = false)
+@Database([Category::class, User::class, Recipe::class, UserFavourite::class, UserRated::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class ProjectDatabase : RoomDatabase() {
     abstract fun RecipeDAO(): RecipeDAO

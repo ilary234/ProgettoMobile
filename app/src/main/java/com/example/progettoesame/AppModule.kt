@@ -37,7 +37,8 @@ val appModule = module {
             get(),
             ProjectDatabase::class.java,
             "recipes"
-        ).build()
+        ).fallbackToDestructiveMigration(dropAllTables = true)
+         .build()
     }
 
     single { get<Context>().dataStore }
@@ -55,7 +56,9 @@ val appModule = module {
                        get<ProjectDatabase>().UserFavouriteDAO(),
                             get<ProjectDatabase>().UserRatedDAO(), get()) }
     single { CategoryRepository(get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
-    single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
+    single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(),
+                        get<ProjectDatabase>().UserFavouriteDAO(),
+                        get<ProjectDatabase>().UserRatedDAO()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { CategoryViewModel(get(), get()) }

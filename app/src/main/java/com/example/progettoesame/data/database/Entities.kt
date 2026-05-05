@@ -24,7 +24,6 @@ data class User (
     @SerialName("user_id")
     val userId: String,
     @SerialName("username") val username : String,
-    @SerialName("password") val password : String,
     @SerialName("email") val email : String,
     @SerialName("recipe_number") val recipeNumber : Int = 0,
     @SerialName("average_rating") val averageRating : Float = 0.0f,
