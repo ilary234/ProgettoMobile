@@ -2,6 +2,9 @@ package com.example.progettoesame.ui.utils
 
 import android.content.Context
 import android.content.Intent
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 fun shareRecipe(context: Context, title: String, previewImageUrl: String) {
     val link = "link della release di GitHub" //TODO
@@ -32,4 +35,12 @@ fun formatTime(time: Int) : String {
         else -> "${hours} h ${minutes} min"
     }
     return formattedTime
+}
+
+fun getFormattedTimeStamp() : String {
+    val zoneId = ZoneId.of("Europe/Rome")
+    val italianTime = ZonedDateTime.now(zoneId)
+
+    val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+    return  italianTime.format(formatter)
 }
