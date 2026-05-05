@@ -1,7 +1,9 @@
 package com.example.progettoesame.ui.screens
 
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,35 +97,41 @@ fun CategoryScreen(navController: NavController,
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                items(
-                    recipesState.recipes.entries.toList(),
-                    key = { it.key.recipeId }) {
+                items(recipesState.recipes.entries.toList(), key = { it.key.recipeId }) {
                     val recipe = it.key
                     val isFavorite = it.value
-                    PreviewCard(recipe.previewImageUrl, recipe.title)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = {
-                            if (false/*isLoggedIn()*/) {
-                                categoryViewModel.actions.onFavorite(recipe, "userId") //TODO
-                            } else {
-                                showDialog = true
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .clickable{
+                                navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))
                             }
-                        }) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Favorite Icon",
-                                modifier = Modifier.size(24.dp),
-                                tint = if (isFavorite) Color.Red else Color.Gray
-                            )
+                    ) {
+                        PreviewCard(recipe.previewImageUrl, recipe.title)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = {
+                                if (false/*isLoggedIn()*/) {
+                                    categoryViewModel.actions.onFavorite(recipe, "userId") //TODO
+                                } else {
+                                    showDialog = true
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite Icon",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (isFavorite) Color.Red else Color.Gray
+                                )
+                            }
                         }
-                    }
 
-                    val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
-                    InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+                        val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
+                        InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+                    }
                 }
             }
         }

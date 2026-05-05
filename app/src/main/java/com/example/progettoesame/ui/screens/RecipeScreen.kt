@@ -203,7 +203,11 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-            Row() {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 IconButton(onClick = {
                     if (isSpeaking) {
