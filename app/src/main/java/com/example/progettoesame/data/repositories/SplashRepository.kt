@@ -6,10 +6,12 @@ import com.example.progettoesame.data.database.Category
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.data.database.UserFavourite
+import com.example.progettoesame.data.database.UserRated
 import com.example.progettoesame.data.database.daos.CategoryDAO
 import com.example.progettoesame.data.database.daos.RecipeDAO
 import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.daos.UserFavouriteDAO
+import com.example.progettoesame.data.database.daos.UserRatedDAO
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
@@ -17,6 +19,7 @@ class SplashRepository(private val categoryDAO: CategoryDAO,
                        private val recipeDAO: RecipeDAO,
                        private val userDAO: UserDAO,
                        private val userFavouriteDAO: UserFavouriteDAO,
+                       private val userRatedDAO: UserRatedDAO,
                        private val supabase: SupabaseClient,
                        private val syncManager: SyncManager) {
     suspend fun prepareData(): Boolean {
@@ -38,6 +41,11 @@ class SplashRepository(private val categoryDAO: CategoryDAO,
                     val usersFavourites = supabase.from("user_favourite_recipes").select().decodeList<UserFavourite>()
                     userFavouriteDAO.upsertAll(usersFavourites)
                     userFavouriteDAO.markAllUsersFavouriteAsSynced()
+
+                    val usersRated = supabase.from("user_rated_recipes").select().decodeList<UserRated>()
+                    userRatedDAO.upsertAll(usersRated)
+                    userRatedDAO.markAllUsersRatedAsSynced()
+
                     return true
                 } else {
                     return false

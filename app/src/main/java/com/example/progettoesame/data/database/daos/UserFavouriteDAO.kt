@@ -14,14 +14,17 @@ interface UserFavouriteDAO {
     @Query("SELECT * FROM user_favourite_recipes WHERE isSynced = 0")
     suspend fun getUnsyncedUsersFavourites(): List<UserFavourite>
 
-    @Query("UPDATE user_favourite_recipes SET isSynced = 1 WHERE userId = :id")
-    suspend fun markAsSynced(id: String)
+    @Query("UPDATE user_favourite_recipes SET isSynced = 1 WHERE userId = :userId AND recipeId = :recipeId")
+    suspend fun markAsSynced(userId: String, recipeId: String)
 
     @Query("SELECT MAX(updatedAt) FROM user_favourite_recipes")
     suspend fun getLastUpdateTimestamp(): String?
 
     @Query("SELECT * FROM user_favourite_recipes WHERE userId = :userId and isDeleted = 0")
     suspend fun getUserFavorites(userId: String) : List<UserFavourite>
+
+    @Query("SELECT EXISTS (SELECT 1 FROM user_favourite_recipes WHERE userId = :userId AND recipeId = :recipeId AND isDeleted = 0)")
+    suspend fun isFavorite(recipeId: String, userId: String): Boolean
 
     @Upsert
     suspend fun upsert(userFavourite: UserFavourite)

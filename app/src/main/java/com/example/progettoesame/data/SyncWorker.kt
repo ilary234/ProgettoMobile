@@ -12,6 +12,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters, private va
         val unsyncedRecipes = repository.getUnsyncedRecipes()
         val unsyncedUsers = repository.getUnsyncedUsers()
         val unsyncedUsersFavourites = repository.getUnsyncedUsersFavourites()
+        val unsyncedUsersRated = repository.getUnsyncedUsersRated()
 
         return try {
             unsyncedRecipes.forEach { recipe ->
@@ -24,7 +25,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters, private va
             }
             unsyncedUsersFavourites.forEach { userFavourite ->
                 repository.sendUserFavouriteToSupabase(userFavourite)
-                repository.markUserFavouriteAsSynced(userFavourite.userId)
+                repository.markUserFavouriteAsSynced(userFavourite.userId, userFavourite.recipeId)
+            }
+            unsyncedUsersRated.forEach { userRated ->
+                repository.sendUserRatedToSupabase(userRated)
+                repository.markUserRatedAsSynced(userRated.userId, userRated.recipeId)
             }
 
             repository.pullFromSupabase()

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progettoesame.data.database.Recipe
+import com.example.progettoesame.data.database.Step
 
 @Dao
 interface RecipeDAO {
@@ -19,6 +20,9 @@ interface RecipeDAO {
 
     @Query("SELECT MAX(updatedAt) FROM recipes")
     suspend fun getLastUpdateTimestamp(): String?
+
+    @Query("SELECT * FROM recipes WHERE recipeId = :id")
+    suspend fun getRecipe(id: String): Recipe
 
     @Upsert
     suspend fun upsertAll(recipes: List<Recipe>)

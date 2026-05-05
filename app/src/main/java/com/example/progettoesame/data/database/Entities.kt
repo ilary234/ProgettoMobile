@@ -36,7 +36,7 @@ data class User (
 data class Ingredient (
     @SerialName("ingredient_name") val name : String,
     @SerialName("quantity") val quantity : Float,
-    @SerialName("unit") val unit : String, //enum di kg, g, ml, L
+    @SerialName("unit") val unit : String,
     @SerialName("updated_at") val updatedAt : String,
     @SerialName("is_deleted") val isDeleted: Boolean = false,
     @Transient val isSynced: Boolean = false
@@ -44,7 +44,7 @@ data class Ingredient (
 
 @Serializable
 data class Step (
-    @SerialName("step_number") val number : Int, //Autoincrement da 1
+    @SerialName("step_number") val number : Int,
     val imageUrls: List<String>,
     @SerialName("description") val description : String,
     @SerialName("updated_at") val updatedAt : String,
@@ -77,6 +77,17 @@ data class Recipe (
 data class UserFavourite (
     @SerialName("user_id") val userId: String,
     @SerialName("recipe_id") val recipeId : String,
+    @SerialName("updated_at") val updatedAt : String,
+    @SerialName("is_deleted") val isDeleted: Boolean = false,
+    @Transient val isSynced: Boolean = false
+)
+
+@Serializable
+@Entity(tableName = "user_rated_recipes", primaryKeys = ["userId", "recipeId"])
+data class UserRated (
+    @SerialName("user_id") val userId: String,
+    @SerialName("recipe_id") val recipeId : String,
+    @SerialName("rating") val rating : Int,
     @SerialName("updated_at") val updatedAt : String,
     @SerialName("is_deleted") val isDeleted: Boolean = false,
     @Transient val isSynced: Boolean = false
