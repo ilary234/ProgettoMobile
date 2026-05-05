@@ -1,6 +1,5 @@
 package com.example.progettoesame.ui.utils
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -153,7 +152,7 @@ fun BulletPointText(text: String) {
 fun LoginRequiredDialog(onDismiss: () -> Unit, onConfirm: () -> Unit){
     AlertDialog(
         title = {Text("Login Richiesto")},
-        text = {Text("Per aggiungere alla lista dei preferiti devi prima effettuare il login.")},
+        text = {Text("Per eseguire questa azione è necessario effettuare il login.")},
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onConfirm) {

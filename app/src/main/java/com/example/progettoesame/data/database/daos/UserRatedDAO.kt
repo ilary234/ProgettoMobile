@@ -1,9 +1,11 @@
 package com.example.progettoesame.data.database.daos
 
+import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progettoesame.data.database.UserRated
 
+@Dao
 interface UserRatedDAO {
     @Query("UPDATE user_rated_recipes SET isSynced = 1")
     suspend fun markAllUsersRatedAsSynced()
@@ -16,6 +18,12 @@ interface UserRatedDAO {
 
     @Query("SELECT MAX(updatedAt) FROM user_rated_recipes")
     suspend fun getLastUpdateTimestamp(): String?
+
+    @Query("SELECT rating FROM user_rated_recipes WHERE userId = :userId AND recipeId = :recipeId AND isDeleted = 0")
+    suspend fun getRating(userId: String, recipeId: String): Int?
+
+    @Upsert
+    suspend fun upsert(userRated : UserRated)
 
     @Upsert
     suspend fun upsertAll(userRated : List<UserRated>)

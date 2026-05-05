@@ -2,19 +2,26 @@ package com.example.progettoesame.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,24 +49,36 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.BulletPointText
+import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RatingRow
+import com.example.progettoesame.ui.utils.shareRecipe
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel, recipeId : String) {
     val recipeState by recipeViewModel.recipe.collectAsStateWithLifecycle()
+    val stepsState by recipeViewModel.stepsState.collectAsStateWithLifecycle()
+    val isFavorite by recipeViewModel.isFavorite.collectAsStateWithLifecycle()
+    val rating by recipeViewModel.rate.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+
+    val ctx = LocalContext.current
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
+        if(true/*isLoggedIn*/) { //TODO
+            recipeViewModel.getUserRecipeData(recipeId, "userId")
+        }
     }
 
     val currentRecipe = recipeState?: run {
-        Scaffold {
-            CircularProgressIndicator()
+        Scaffold { paddingValues ->
+            CircularProgressIndicator(
+                modifier = Modifier.padding(paddingValues)
+            )
         }
         return
     }
@@ -104,14 +124,14 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 Text(currentRecipe.author, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 RatingRow(currentRecipe.averageRating)
             }
-            Text("Tempi:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Tempi:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
-                BulletPointText("Preparazione: ${FormatTime(currentRecipe.preparation)}")
+                BulletPointText("Preparazione: ${formatTime(currentRecipe.preparation)}")
                 if (currentRecipe.waiting != null) {
-                    BulletPointText("Riposo: ${FormatTime(currentRecipe.waiting)}")
+                    BulletPointText("Riposo: ${formatTime(currentRecipe.waiting)}")
                 }
-                BulletPointText("Cottura: ${FormatTime(currentRecipe.cooking)}")
+                BulletPointText("Cottura: ${formatTime(currentRecipe.cooking)}")
             }
 
             Row(
@@ -119,17 +139,16 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* Azione Share */ }) { //TODO
+                IconButton(onClick = { shareRecipe(ctx, currentRecipe.title, currentRecipe.previewImageUrl)}) {
                     Icon(Icons.Default.Share, contentDescription = "Share")
                 }
                 IconButton(onClick = {
-                    if (false/*isLoggedIn()*/) {
-                        //recipeViewModel.actions.onFavorite(recipe, "userId") //TODO
+                    if (true/*isLoggedIn()*/) {//TODO
+                        recipeViewModel.actions.onFavorite(currentRecipe, "userId")
                     } else {
                         showDialog = true
                     }
                 }) {
-                    val isFavorite = true //TODO recipeViewModel.isFavorite(recipeId)
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite Icon",
@@ -152,20 +171,74 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-            //Aggiungi sezioni passi e procedimento
+            Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            currentRecipe.steps.sortedBy { it.number }.forEach { step ->
+                val isOpen = stepsState.stepStates[step] ?: false
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Passaggio ${step.number}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+                        IconButton(onClick = { recipeViewModel.actions.onToggleStep(step) }) {
+                            Icon(
+                                imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                contentDescription = "Arrow Icon",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                    if (isOpen && step.imageUrls.isNotEmpty()) {
+                        val pagerState = rememberPagerState(
+                            pageCount = { step.imageUrls.size }
+                        )
+
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 32.dp),
+                            pageSpacing = 16.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            PreviewCard(step.imageUrls[page],"Passaggio ${step.number} - Foto ${page + 1}"
+                            )
+                        }
+
+                        Text(text = step.description, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Lascia una recensione:", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Normal)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    repeat(5) { index ->
+                        val active = index < rating
+                        IconButton(onClick = {
+                            if (true/*isLoggedIn()*/) {//TODO
+                                recipeViewModel.actions.onRate(currentRecipe, "userId", index + 1)
+                            } else {
+                                showDialog = true
+                            }}) {
+                            Icon(
+                                imageVector = if (active) Icons.Default.Star else Icons.Outlined.StarBorder,
+                                contentDescription = null,
+                                tint = if (active) Color(0xFFFFB400) else Color.LightGray,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
 
         }
     }
-}
-
-fun FormatTime(time: Int) : String {
-    val hours = time / 60
-    val minutes = time % 60
-
-    val formattedTime = when {
-        time < 60 -> "$time min"
-        minutes == 0 -> "${hours} h"
-        else -> "${hours} h ${minutes} min"
-    }
-    return formattedTime
 }

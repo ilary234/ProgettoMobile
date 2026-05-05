@@ -20,6 +20,7 @@ import com.example.progettoesame.ui.screens.SettingScreen
 import com.example.progettoesame.ui.screens.SignUpScreen
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
+import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -67,8 +68,9 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             CategoryScreen(navController, route.categoryId, route.categoryName, categoryVm)
         }
         composable<NavigationRoute.RecipeDetails> { backStackEntry ->
+            val recipeVm = koinViewModel<RecipeViewModel>()
             val route = backStackEntry.toRoute<NavigationRoute.RecipeDetails>()
-            RecipeScreen(navController, route.recipeId)
+            RecipeScreen(navController, recipeVm, route.recipeId)
         }
         composable<NavigationRoute.NewRecipe> { NewRecipeScreen(navController) }
         composable<NavigationRoute.Profile> { backStackEntry ->
