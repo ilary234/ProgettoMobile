@@ -7,10 +7,12 @@ import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
 import com.example.progettoesame.data.repositories.CategoryRepository
+import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
+import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
@@ -59,8 +61,10 @@ val appModule = module {
     single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(),
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO()) }
+    single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
 
     viewModel { SplashViewModel(get()) }
+    viewModel { HomeViewModel(get()) }
     viewModel { CategoryViewModel(get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }

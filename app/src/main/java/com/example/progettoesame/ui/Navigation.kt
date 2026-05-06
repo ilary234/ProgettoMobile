@@ -18,6 +18,7 @@ import com.example.progettoesame.ui.screens.RecipeScreen
 import com.example.progettoesame.ui.screens.SettingScreen
 import com.example.progettoesame.ui.screens.SignUpScreen
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
+import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
@@ -55,7 +56,9 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
                 navController.popBackStack()
             }
         }
-        composable<NavigationRoute.Home> { HomeScreen(navController) }
+        composable<NavigationRoute.Home> {
+            val homeVm = koinViewModel<HomeViewModel>()
+            HomeScreen(navController, homeVm) }
         composable<NavigationRoute.Error> {
             val initialErrorVm = koinViewModel<InitialErrorViewModel>()
             InitialErrorScreen(navController, initialErrorVm)

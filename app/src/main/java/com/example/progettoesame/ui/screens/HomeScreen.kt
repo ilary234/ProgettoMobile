@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,14 +21,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.RecipeCard
+import com.example.progettoesame.ui.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController)  {
+fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  {
     var isMenuOpen by remember { mutableStateOf(false) }
+    val categories by homeViewModel.categories.collectAsStateWithLifecycle()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -105,8 +109,13 @@ fun HomeScreen(navController: NavHostController)  {
                         Spacer(modifier = Modifier.weight(1.3f))
                     }
 
-                    val categorie = listOf("Antipasti", "Primi Piatti", "Secondi Piatti", "Contorni", "Dessert", "Lievitati")
-                    categorie.forEach { CategoryMenuItem(title = it) }
+                    categories.categories.sortedBy { it.order }
+                        .forEach { CategoryMenuItem(it.name,
+                            onCategoryClick = {
+                                isMenuOpen = false
+                                navController.navigate(NavigationRoute.CategoryRecipes(it.categoryId, it.name))
+                            }
+                        )}
                 }
             }
         }
@@ -161,17 +170,21 @@ fun SearchBar() {
 }
 
 @Composable
-fun CategoryMenuItem(title: String) {
+fun CategoryMenuItem(title: String, onCategoryClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onCategoryClick() }
             .padding(horizontal = 24.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(20.dp))
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
