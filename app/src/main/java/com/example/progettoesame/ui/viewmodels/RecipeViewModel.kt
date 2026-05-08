@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class StepState(val stepStates : Map<Step, Boolean>)
+data class RecipeData(val recipe: Recipe, val author: String)
 
 data class RecipeActions (
-    val onFavorite: (Recipe, String) -> Unit,
-    val onRate: (Recipe, String, Int) -> Unit,
+    val onFavorite: (String, String) -> Unit,
+    val onRate: (String, String, Int) -> Unit,
     val onToggleStep: (Step) -> Unit
 )
 class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
-    private val _recipe = MutableStateFlow<Recipe?>(null)
+    private val _recipe = MutableStateFlow<RecipeData?>(null)
     val recipe = _recipe.asStateFlow()
 
     private val _stepsState = MutableStateFlow(StepState(emptyMap()))
@@ -31,8 +32,10 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
 
     fun fetchRecipe(recipeId: String) {
         viewModelScope.launch {
-            _recipe.value = repository.getRecipe(recipeId)
-            _stepsState.value = StepState(_recipe.value?.steps?.associateWith { false } ?: emptyMap())
+            val recipe = repository.getRecipe(recipeId)
+            val author = repository.getAuthor(recipe.author)
+            _recipe.value = RecipeData(recipe, author)
+            _stepsState.value = StepState(_recipe.value?.recipe?.steps?.associateWith { false } ?: emptyMap())
         }
     }
 
@@ -51,20 +54,20 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
     }
 
     val actions = RecipeActions(
-        onFavorite = { recipe, userId -> viewModelScope.launch {
+        onFavorite = { recipeId, userId -> viewModelScope.launch {
             if (_isFavorite.value) {
-                repository.deleteFavorite(recipe.recipeId, userId)
+                repository.deleteFavorite(recipeId, userId)
             } else {
-                repository.setFavorite(recipe.recipeId, userId)
+                repository.setFavorite(recipeId, userId)
             }
             _isFavorite.value = !_isFavorite.value
         }},
-        onRate = { recipe, userId, rating -> viewModelScope.launch {
+        onRate = { recipeId, userId, rating -> viewModelScope.launch {
             if (_rate.value != rating) {
-                repository.updateRating(recipe.recipeId, userId, rating)
+                repository.updateRating(recipeId, userId, rating)
                 _rate.value = rating
             } else {
-                repository.deleteRating(recipe.recipeId, userId)
+                repository.deleteRating(recipeId, userId)
                 _rate.value = 0
             }
         }},

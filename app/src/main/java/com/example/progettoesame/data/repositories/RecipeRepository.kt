@@ -4,14 +4,18 @@ import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.UserFavourite
 import com.example.progettoesame.data.database.UserRated
 import com.example.progettoesame.data.database.daos.RecipeDAO
+import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.daos.UserFavouriteDAO
 import com.example.progettoesame.data.database.daos.UserRatedDAO
 import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 
 class RecipeRepository(private val recipeDAO: RecipeDAO,
+                       private val userDAO: UserDAO,
                        private val userFavouriteDAO: UserFavouriteDAO,
                        private val userRatedDAO: UserRatedDAO) {
     suspend fun getRecipe(recipeId: String): Recipe = recipeDAO.getRecipe(recipeId)
+
+    suspend fun getAuthor(userId: String): String = userDAO.getAuthor(userId)
 
     suspend fun isFavorite(recipeId: String, userId: String): Boolean = userFavouriteDAO.isFavorite(recipeId, userId)
 

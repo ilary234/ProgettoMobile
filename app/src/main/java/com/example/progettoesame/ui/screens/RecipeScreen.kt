@@ -3,12 +3,17 @@ package com.example.progettoesame.ui.screens
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.text.util.Linkify
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -34,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -49,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -99,7 +104,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
         }
     }
 
-    val currentRecipe = recipeState?: run {
+    if(recipeState == null) {
         Scaffold { paddingValues ->
             CircularProgressIndicator(
                 modifier = Modifier.padding(paddingValues)
@@ -111,7 +116,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     if (showDialog) {
         LoginRequiredDialog(
             onDismiss = { showDialog = false },
-            onConfirm = { navController.navigate(NavigationRoute.Login) }
+            onConfirm = { showDialog = false
+                navController.navigate(NavigationRoute.Login) }
         )
     }
 
@@ -122,12 +128,18 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
         }
     }
 
+    val currentData = recipeState ?: return
+    val recipe = currentData.recipe
+    val author = currentData.author
     Scaffold(
+        containerColor = Color.White,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = currentRecipe.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(text = recipe.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    navigationIconContentColor = Color.Black
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
@@ -146,24 +158,30 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            PreviewCard(currentRecipe.previewImageUrl, currentRecipe.title)
+            PreviewCard(recipe.previewImageUrl, recipe.title)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(currentRecipe.author, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                RatingRow(currentRecipe.averageRating)
+                Text(author,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline,
+                    color = MaterialTheme.colorScheme.primary, //TODO mettere colore secondary (arancione scuro in questo caso)
+                    modifier = Modifier.weight(1f)
+                        .clickable{navController.navigate(NavigationRoute.Profile(0/*recipe.author*/))}) //TODO
+                RatingRow(recipe.averageRating)
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("Tempi:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
-                BulletPointText("Preparazione: ${formatTime(currentRecipe.preparation)}")
-                if (currentRecipe.waiting != null) {
-                    BulletPointText("Riposo: ${formatTime(currentRecipe.waiting)}")
+                BulletPointText("Preparazione: ${formatTime(recipe.preparation)}")
+                if (recipe.waiting != null) {
+                    BulletPointText("Riposo: ${formatTime(recipe.waiting)}")
                 }
-                BulletPointText("Cottura: ${formatTime(currentRecipe.cooking)}")
+                BulletPointText("Cottura: ${formatTime(recipe.cooking)}")
             }
 
             Row(
@@ -171,12 +189,12 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { shareRecipe(ctx, currentRecipe.title, currentRecipe.previewImageUrl)}) {
-                    Icon(Icons.Default.Share, contentDescription = "Share")
+                IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl)}) {
+                    Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray)
                 }
                 IconButton(onClick = {
-                    if (true/*isLoggedIn()*/) {//TODO
-                        recipeViewModel.actions.onFavorite(currentRecipe, "userId")
+                    if (false/*isLoggedIn()*/) {//TODO
+                        recipeViewModel.actions.onFavorite(recipe.recipeId, "userId")
                     } else {
                         showDialog = true
                     }
@@ -191,17 +209,17 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             }
 
             Text("Ingredienti", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Surface(
-                color = Color(0xFFEEEEEE),
-                shape = RoundedCornerShape(12.dp),
+
+            Column(
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    currentRecipe.ingredients.forEach { ingredient ->
-                        BulletPointText(ingredient.name + ":" + ingredient.quantity + ingredient.unit)
-                    }
+                    .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(12.dp))
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                recipe.ingredients.forEach { ingredient ->
+                    BulletPointText(ingredient.name + ": " + ingredient.quantity + " " + ingredient.unit)
                 }
             }
+
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -214,7 +232,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                         tts.stop()
                         isSpeaking = false
                     } else {
-                        val text = currentRecipe.steps
+                        val text = recipe.steps
                             .sortedBy { it.number }
                             .joinToString(separator = ". ") { it.description }
                         val params = Bundle()
@@ -230,15 +248,17 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     )
                 }
             }
-            currentRecipe.steps.sortedBy { it.number }.forEach { step ->
+            recipe.steps.sortedBy { it.number }.forEach { step ->
                 val isOpen = stepsState.stepStates[step] ?: false
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
+                            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(12.dp))
+                            .padding(start = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Passaggio ${step.number}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+                        Text("Passaggio ${step.number}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
                         IconButton(onClick = { recipeViewModel.actions.onToggleStep(step) }) {
                             Icon(
                                 imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
@@ -248,26 +268,32 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                             )
                         }
                     }
-                    if (isOpen && step.imageUrls.isNotEmpty()) {
-                        val pagerState = rememberPagerState(
-                            pageCount = { step.imageUrls.size }
-                        )
-
-                        HorizontalPager(
-                            state = pagerState,
-                            contentPadding = PaddingValues(horizontal = 32.dp),
-                            pageSpacing = 16.dp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) { page ->
-                            PreviewCard(step.imageUrls[page],"Passaggio ${step.number} - Foto ${page + 1}"
+                    if (isOpen) {
+                        if (step.imageUrls.isNotEmpty()) {
+                            val pagerState = rememberPagerState(
+                                pageCount = { step.imageUrls.size }
                             )
+
+                            HorizontalPager(
+                                state = pagerState,
+                                contentPadding = PaddingValues(horizontal = 32.dp),
+                                pageSpacing = 16.dp,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { page ->
+                                PreviewCard(
+                                    step.imageUrls[page],
+                                    "Passaggio ${step.number} - Foto ${page + 1}"
+                                )
+                            }
                         }
 
-                        Text(text = step.description, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth())
+                        Text(text = step.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
 
+
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -276,13 +302,16 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 Text("Lascia una recensione:", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Normal)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     repeat(5) { index ->
                         val active = index < rating
-                        IconButton(onClick = {
-                            if (true/*isLoggedIn()*/) {//TODO
-                                recipeViewModel.actions.onRate(currentRecipe, "userId", index + 1)
+                        IconButton(
+                            modifier = Modifier.size(20.dp),
+                            onClick = {
+                            if (false/*isLoggedIn()*/) {//TODO
+                                recipeViewModel.actions.onRate(recipe.recipeId, "userId", index + 1)
                             } else {
                                 showDialog = true
                             }}) {

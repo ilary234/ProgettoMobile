@@ -20,6 +20,9 @@ interface UserDAO {
     @Query("SELECT MAX(updatedAt) FROM users")
     suspend fun getLastUpdateTimestamp(): String?
 
+    @Query("SELECT username FROM users WHERE userId = :id")
+    suspend fun getAuthor(id: String): String
+
     @Upsert
     suspend fun upsert(user: User)
 
