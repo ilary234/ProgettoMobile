@@ -101,18 +101,23 @@ fun PreviewCard(imageUrl: String, recipeName: String) {
 
 @Composable
 fun InfoPreview(title: String, time: String, rating: Float) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        maxLines = 1
-    )
-    Text(
-        text = time,
-        style = MaterialTheme.typography.bodySmall,
-        color = Color.Gray
-    )
-    RatingRow(rating)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
+        Text(
+            text = time,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
+        RatingRow(rating)
+    }
 }
 
 @Composable
@@ -163,6 +168,9 @@ fun LoginRequiredDialog(onDismiss: () -> Unit, onConfirm: () -> Unit){
             TextButton(onClick = onDismiss) {
                 Text("Annulla")
             }
-        }
+        },
+        containerColor = Color.White,
+        textContentColor = Color.Black,
+        titleContentColor = Color.Black
     )
 }
