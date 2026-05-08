@@ -19,6 +19,7 @@ import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 import org.koin.androidx.workmanager.dsl.worker
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -26,13 +27,17 @@ import org.koin.dsl.module
 val Context.dataStore by
 preferencesDataStore("theme")
 val appModule = module {
-    val supabase = createSupabaseClient(
-        supabaseUrl = "https://gerqtvdadryakiqvqita.supabase.co",
-        supabaseKey = "sb_publishable_Dq9MKADaMDUdSSzfQZ-3-A_1eMwf6cH"
-    ) {
-        install(Auth)
-        install(Postgrest)
+    single {
+        createSupabaseClient(
+            supabaseUrl = "https://gerqtvdadryakiqvqita.supabase.co",
+            supabaseKey = "sb_publishable_Dq9MKADaMDUdSSzfQZ-3-A_1eMwf6cH"
+        ) {
+            install(Auth)
+            install(Postgrest)
+            install(Storage)
+        }
     }
+
 
     single {
         Room.databaseBuilder(
@@ -51,7 +56,7 @@ val appModule = module {
                                   get<ProjectDatabase>().UserDAO(),
                           get<ProjectDatabase>().UserFavouriteDAO(),
                           get<ProjectDatabase>().UserRatedDAO(),
-                                           supabase, get()) }
+                                           get(), get()) }
 
     single { SyncRepository(get<ProjectDatabase>().RecipeDAO(),
                               get<ProjectDatabase>().UserDAO(),
@@ -59,13 +64,14 @@ val appModule = module {
                             get<ProjectDatabase>().UserRatedDAO(), get()) }
     single { CategoryRepository(get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
     single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(),
+                                get<ProjectDatabase>().UserDAO(),
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO()) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get()) }
-    viewModel { CategoryViewModel(get(), get()) }
+    viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
 

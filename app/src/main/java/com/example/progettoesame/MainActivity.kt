@@ -12,6 +12,7 @@ import com.example.progettoesame.ui.NavGraph
 import com.example.progettoesame.ui.theme.ProgettoEsameTheme
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.compose.KoinContext
 
 class MainActivity : ComponentActivity() {
     private val splashViewModel: SplashViewModel by viewModel()
@@ -25,14 +26,16 @@ class MainActivity : ComponentActivity() {
             !splashViewModel.isReady.value
         }
         setContent {
-            ProgettoEsameTheme {
-                val navController = rememberNavController()
-                val startDestination by splashViewModel.startDestination.collectAsStateWithLifecycle()
-                startDestination?.let { destination ->
-                    NavGraph(
-                        navController = navController,
-                        startDestination = destination
-                    )
+            KoinContext {
+                ProgettoEsameTheme {
+                    val navController = rememberNavController()
+                    val startDestination by splashViewModel.startDestination.collectAsStateWithLifecycle()
+                    startDestination?.let { destination ->
+                        NavGraph(
+                            navController = navController,
+                            startDestination = destination
+                        )
+                    }
                 }
             }
         }
