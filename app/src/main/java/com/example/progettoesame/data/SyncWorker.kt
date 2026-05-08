@@ -5,8 +5,6 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.progettoesame.data.repositories.SyncRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class SyncWorker(appContext: Context, workerParams: WorkerParameters, private val repository: SyncRepository)
     : CoroutineWorker(appContext, workerParams) {
