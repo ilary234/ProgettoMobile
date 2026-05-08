@@ -2,6 +2,7 @@ package com.example.progettoesame.data.repositories
 
 
 import android.util.Log
+import androidx.work.ListenableWorker
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.data.database.UserFavourite
@@ -13,6 +14,8 @@ import com.example.progettoesame.data.database.daos.UserRatedDAO
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SyncRepository(private val recipeDAO: RecipeDAO,
                      private val userDAO: UserDAO,
@@ -30,23 +33,23 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
     suspend fun markUserFavouriteAsSynced(userId: String, recipeId: String) = userFavouriteDAO.markAsSynced(userId, recipeId)
     suspend fun markUserRatedAsSynced(userId: String, recipeId: String) = userRatedDAO.markAsSynced(userId, recipeId)
 
-    suspend fun sendRecipeToSupabase(recipe: Recipe) {
+    suspend fun sendRecipeToSupabase(recipe: Recipe) = withContext(Dispatchers.IO) {
         supabase.from("recipes").upsert(recipe)
     }
 
-    suspend fun sendUserToSupabase(user: User) {
+    suspend fun sendUserToSupabase(user: User) = withContext(Dispatchers.IO) {
         supabase.from("users").upsert(user)
     }
 
-    suspend fun sendUserFavouriteToSupabase(userFavourite: UserFavourite) {
+    suspend fun sendUserFavouriteToSupabase(userFavourite: UserFavourite) = withContext(Dispatchers.IO) {
         supabase.from("user_favourite_recipes").upsert(userFavourite)
     }
 
-    suspend fun sendUserRatedToSupabase(userRated: UserRated) {
+    suspend fun sendUserRatedToSupabase(userRated: UserRated) = withContext(Dispatchers.IO) {
         supabase.from("user_rated_recipes").upsert(userRated)
     }
 
-    suspend fun pullFromSupabase() {
+    suspend fun pullFromSupabase() = withContext(Dispatchers.IO) {
         try {
             val lastRecipeUpdate = recipeDAO.getLastUpdateTimestamp() ?: "2026-04-21T00:00:00Z"
             val remoteRecipeChanges = supabase.from("recipes").select {
@@ -108,6 +111,36 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
         } catch (e: Exception) {
             Log.e("Sync", "Errore durante l'upload", e)
             null
+        }
+    }
+
+    suspend fun fullSync() = withContext(Dispatchers.IO) {
+        val unsyncedRecipes = getUnsyncedRecipes()
+        val unsyncedUsers = getUnsyncedUsers()
+        val unsyncedUsersFavourites = getUnsyncedUsersFavourites()
+        val unsyncedUsersRated = getUnsyncedUsersRated()
+
+        try {
+            unsyncedRecipes.forEach { recipe ->
+                sendRecipeToSupabase(recipe)
+                markRecipeAsSynced(recipe.recipeId)
+            }
+            unsyncedUsers.forEach { user ->
+                sendUserToSupabase(user)
+                markUserAsSynced(user.userId)
+            }
+            unsyncedUsersFavourites.forEach { userFavourite ->
+                sendUserFavouriteToSupabase(userFavourite)
+                markUserFavouriteAsSynced(userFavourite.userId, userFavourite.recipeId)
+            }
+            unsyncedUsersRated.forEach { userRated ->
+                sendUserRatedToSupabase(userRated)
+                markUserRatedAsSynced(userRated.userId, userRated.recipeId)
+            }
+
+            pullFromSupabase()
+        } catch (e: Exception) {
+            Log.e("SyncRepository", "Error syncing data: ${e.message}")
         }
     }
 }

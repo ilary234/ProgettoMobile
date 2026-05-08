@@ -4,10 +4,14 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 class SyncManager(private val context: Context) {
 
@@ -20,19 +24,37 @@ class SyncManager(private val context: Context) {
                 capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
     }
 
-    fun triggerSync() {
+    fun schedulePeriodicSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<SyncWorker>(4, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "periodic_sync",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    fun triggerImmediateSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+        val request = OneTimeWorkRequestBuilder<SyncWorker>()
             .setConstraints(constraints)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
-            "supabase_sync_task",
+            "immediate_sync",
             ExistingWorkPolicy.REPLACE,
-            syncRequest
+            request
         )
     }
 }

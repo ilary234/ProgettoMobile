@@ -51,7 +51,7 @@ class SplashRepository(private val categoryDAO: CategoryDAO,
                     return false
                 }
             }
-            syncManager.triggerSync()
+            syncManager.triggerImmediateSync()
             return true
         } catch (e: Exception) {
 
