@@ -11,6 +11,7 @@ import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
@@ -74,6 +75,7 @@ val appModule = module {
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
+    viewModel { AuthViewModel() }
 
     worker { SyncWorker(get(), get(), get()) }
 }

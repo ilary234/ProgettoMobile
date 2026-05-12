@@ -6,11 +6,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthScreenTemplate
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @Composable
-fun LoginScreen(navController: NavHostController, onNavigateToSignUp: () -> Unit) {
+fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     AuthScreenTemplate(
+        onBackClick = { navController.navigateUp() },
         title = "Bentornato",
         subtitle = "Accedi per continuare",
         buttonText = "Accedi",
@@ -20,6 +23,6 @@ fun LoginScreen(navController: NavHostController, onNavigateToSignUp: () -> Unit
         footerText = buildAnnotatedString {
             append("Non hai un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Registrati") }
         },
-        onFooterClick = onNavigateToSignUp
+        onFooterClick = { navController.navigate(NavigationRoute.SignUp) }
     )
 }

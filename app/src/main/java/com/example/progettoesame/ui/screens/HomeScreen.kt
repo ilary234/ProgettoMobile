@@ -42,7 +42,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                     HomeTopBar(
                         onMenuClick = { isMenuOpen = true },
                         onProfileClick = {
-                            navController.navigate(NavigationRoute.Profile(userId = 1)) // da sistemare
+                            navController.navigate(NavigationRoute.Profile(userId = "sssss")) // da sistemare
                         }
                     )
                 }

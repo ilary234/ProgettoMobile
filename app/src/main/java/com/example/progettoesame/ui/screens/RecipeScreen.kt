@@ -170,7 +170,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     textDecoration = TextDecoration.Underline,
                     color = MaterialTheme.colorScheme.primary, //TODO mettere colore secondary (arancione scuro in questo caso)
                     modifier = Modifier.weight(1f)
-                        .clickable{navController.navigate(NavigationRoute.Profile(0/*recipe.author*/))}) //TODO
+                        .clickable{navController.navigate(NavigationRoute.Profile("sss"/*recipe.author*/))}) //TODO avevo messo una stringa a caso solo per far andare l'app
                 RatingRow(recipe.averageRating)
             }
 

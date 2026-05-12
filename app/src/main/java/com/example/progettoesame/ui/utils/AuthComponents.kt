@@ -16,16 +16,21 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progettoesame.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreenTemplate(
+    onBackClick: () -> Unit,
     title: String,
     subtitle: String,
     buttonText: String,
@@ -65,99 +72,135 @@ fun AuthScreenTemplate(
     var username by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .statusBarsPadding()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(60.dp))
-
-        Text(text = "Nome App", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
-        Text(text = subtitle, color = Color.Gray, textAlign = TextAlign.Center)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Password") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = null)
-                }
-            },
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        if (isSignUp) {
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Username") },
-                placeholder = { Text("Come vuoi farti chiamare?") },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Nome App",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Indietro",
+                            modifier = Modifier.size(28.dp) // Più grande per i meno esperti
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.White
+                )
             )
         }
+    ) { innerPadding ->
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button (
-            onClick = { onButtonClick(email, password, username) },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(buttonText, color = Color.White)
+            //Spacer(modifier = Modifier.height(60.dp))
+
+            /*Text(
+                text = "Nome App",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )*/
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(text = subtitle, color = Color.Gray, textAlign = TextAlign.Center)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Email") },
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Password") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            if (isSignUp) {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Username") },
+                    placeholder = { Text("Come vuoi farti chiamare?") },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { onButtonClick(email, password, username) },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
+                Text(buttonText, color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SocialLoginButton(text = socialGoogleText, iconRes = R.drawable.ic_google)
+            Spacer(modifier = Modifier.height(12.dp))
+            SocialLoginButton(text = socialAppleText, iconRes = R.drawable.ic_apple)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LegalText()
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = footerText,
+                modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() }
+            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row (verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-            Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray)
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SocialLoginButton(text = socialGoogleText, iconRes = R.drawable.ic_google)
-        Spacer(modifier = Modifier.height(12.dp))
-        SocialLoginButton(text = socialAppleText, iconRes = R.drawable.ic_apple)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LegalText()
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-            text = footerText,
-            modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() }
-        )
     }
 }
 
