@@ -2,6 +2,8 @@ package com.example.progettoesame.ui.utils
 
 import android.content.Context
 import android.content.Intent
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -43,4 +45,22 @@ fun getFormattedTimeStamp() : String {
 
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
     return  italianTime.format(formatter)
+}
+
+object AuthState { //per utilizzare il valore nelle varie classi bisogna scrivere AuthState.isLoggedIn.value
+    private val _isLoggedIn = mutableStateOf(false)
+    val isLoggedIn: State<Boolean> = _isLoggedIn
+
+    private val _userId = mutableStateOf<String?>(null)
+    val userId: State<String?> = _userId
+
+    fun setLoggedIn(id: String) {
+        _userId.value = id
+        _isLoggedIn.value = true
+    }
+
+    fun setLoggedOut() {
+        _userId.value = null
+        _isLoggedIn.value = false
+    }
 }
