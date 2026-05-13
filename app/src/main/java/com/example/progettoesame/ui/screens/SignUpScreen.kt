@@ -17,7 +17,6 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
         subtitle = "Inserisci i tuoi dati per registrarti",
         buttonText = "Registrati",
         socialGoogleText = "Continua con Google",
-        socialAppleText = "Continua con Apple",
         onButtonClick = { email, pass, user -> /* Registrazione con username */ },
         footerText = buildAnnotatedString {
             append("Hai già un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Accedi") }

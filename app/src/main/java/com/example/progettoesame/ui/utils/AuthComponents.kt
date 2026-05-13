@@ -61,7 +61,6 @@ fun AuthScreenTemplate(
     subtitle: String,
     buttonText: String,
     socialGoogleText: String,
-    socialAppleText: String,
     onButtonClick: (email: String, pass: String, username: String) -> Unit,
     footerText: AnnotatedString,
     onFooterClick: () -> Unit,
@@ -187,8 +186,6 @@ fun AuthScreenTemplate(
             Spacer(modifier = Modifier.height(24.dp))
 
             SocialLoginButton(text = socialGoogleText, iconRes = R.drawable.ic_google)
-            Spacer(modifier = Modifier.height(12.dp))
-            SocialLoginButton(text = socialAppleText, iconRes = R.drawable.ic_apple)
 
             Spacer(modifier = Modifier.height(12.dp))
 
