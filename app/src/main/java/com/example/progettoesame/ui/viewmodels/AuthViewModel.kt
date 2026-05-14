@@ -72,6 +72,22 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun updatePasswordStandard(oldP: String, newP: String, confP: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                repository.updatePassword(newP, confP, oldP)
+                _isError.value = false
+                onSuccess()
+            } catch (e: Exception) {
+                _isError.value = true
+                _errorMessage.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun logout(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {

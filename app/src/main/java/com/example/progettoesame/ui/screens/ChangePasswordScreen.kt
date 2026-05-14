@@ -25,6 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,12 +49,21 @@ fun ChangePasswordScreen(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+
     var oldPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
     var oldPassVisible by remember { mutableStateOf(false) }
     var newPassVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(4000)
+            authViewModel.clearError()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -149,8 +161,8 @@ fun ChangePasswordScreen(
 
             Button(
                 onClick = {
-                    if (newPassword == confirmPassword && newPassword.isNotEmpty()) {
-                        /*TODO*/
+                    authViewModel.updatePasswordStandard(oldPassword, newPassword, confirmPassword) {
+                        navController.popBackStack()
                     }
                 },
                 modifier = Modifier
@@ -162,7 +174,10 @@ fun ChangePasswordScreen(
                 Text("Aggiorna Password", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
-
-
     }
+
+    FeedbackBanner(
+        message = errorMessage ?: "",
+        isVisible = errorMessage != null
+    )
 }

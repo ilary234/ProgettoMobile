@@ -1,5 +1,6 @@
 package com.example.progettoesame.data.repositories
 
+import com.example.progettoesame.ui.utils.AuthState
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -81,6 +82,44 @@ class AuthRepository(private val supabase: SupabaseClient) {
     suspend fun signInWithGoogle() {
         supabase.auth.signInWith(Google) {
             queryParams.putAll(mapOf("prompt" to "select_account"))
+        }
+    }
+
+    suspend fun updatePassword(newPass: String, confirmPass: String, oldPass: String? = null) {
+        if (newPass.isBlank() || confirmPass.isBlank()) {
+            throw Exception("Compila tutti i campi")
+        }
+        if (newPass == oldPass) {
+            throw Exception("La nuova password non può essere uguale a quella attuale")
+        }
+        if (newPass.length < 6) {
+            throw Exception("La password deve contenere almeno 6 caratteri")
+        }
+        if (newPass != confirmPass) {
+            throw Exception("Le password non coincidono")
+        }
+
+        try {
+            oldPass?.let {
+                if (it.isBlank()) throw Exception("Compila tutti i campi")
+
+                val email = AuthState.userEmail.value ?: throw Exception("Sessione scaduta")
+
+                supabase.auth.signInWith(Email) {
+                    this.email = email
+                    this.password = it
+                }
+            }
+            supabase.auth.updateUser {
+                password = newPass
+            }
+        } catch (e: Exception) {
+            val message = when {
+                e.message?.contains("Invalid login credentials") == true -> "La password attuale è errata"
+                e.message?.contains("network") == true -> "Errore di connessione"
+                else -> e.message ?: "Errore durante l'aggiornamento"
+            }
+            throw Exception(message)
         }
     }
 
