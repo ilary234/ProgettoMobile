@@ -60,7 +60,7 @@ fun AuthScreenTemplate(
     title: String,
     subtitle: String,
     buttonText: String,
-    socialGoogleText: String,
+    onSocialGoogleClick: () -> Unit,
     onButtonClick: (email: String, pass: String, username: String) -> Unit,
     footerText: AnnotatedString,
     onFooterClick: () -> Unit,
@@ -185,7 +185,7 @@ fun AuthScreenTemplate(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SocialLoginButton(text = socialGoogleText, iconRes = R.drawable.ic_google)
+            SocialLoginButton(text = "Continua con Google", iconRes = R.drawable.ic_google, onClick = onSocialGoogleClick)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -202,9 +202,9 @@ fun AuthScreenTemplate(
 }
 
 @Composable
-fun SocialLoginButton(text: String, iconRes: Int) {
+fun SocialLoginButton(text: String, iconRes: Int, onClick : () -> Unit) {
     Button(
-        onClick = { },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp),

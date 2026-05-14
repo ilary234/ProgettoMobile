@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.RecipeCard
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 
@@ -33,6 +34,15 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
     var isMenuOpen by remember { mutableStateOf(false) }
     val categories by homeViewModel.categories.collectAsStateWithLifecycle()
 
+    val isLoggedIn by AuthState.isLoggedIn
+    val userEmail by AuthState.userEmail
+
+    val topBarTitle = if (isLoggedIn && !userEmail.isNullOrBlank()) {
+        userEmail!!
+    } else {
+        "NomeApp"
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.White,
@@ -40,9 +50,14 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                 // alpha per nascondere senza rimuovere lo spazio
                 Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
                     HomeTopBar(
+                        text = topBarTitle,
                         onMenuClick = { isMenuOpen = true },
                         onProfileClick = {
-                            navController.navigate(NavigationRoute.Profile(userId = "sssss")) // da sistemare
+                            if (isLoggedIn) {
+                                navController.navigate(NavigationRoute.Profile(AuthState.userId.value!!))
+                            } else {
+                                navController.navigate(NavigationRoute.Login)
+                            }
                         }
                     )
                 }
@@ -124,7 +139,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(onMenuClick: () -> Unit, onProfileClick: () -> Unit) {
+fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -134,7 +149,7 @@ fun HomeTopBar(onMenuClick: () -> Unit, onProfileClick: () -> Unit) {
     ) {
         CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
-            title = { Text("NomeApp", fontWeight = FontWeight.SemiBold) },
+            title = { Text(text = text, fontWeight = FontWeight.SemiBold) },
             navigationIcon = {
                 IconButton(onClick = onMenuClick) {
                     Icon(Icons.Default.Menu, contentDescription = "Menu")

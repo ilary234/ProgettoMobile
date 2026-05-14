@@ -69,17 +69,8 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
         }
         composable<NavigationRoute.NewRecipe> { NewRecipeScreen(navController) }
         composable<NavigationRoute.Profile> { ProfileScreen(navController) }
-        composable<NavigationRoute.Settings> {
-            SettingScreen(
-                navController = navController,
-                onLogout = {
-                    authVM.logout()
-                    navController.navigate(NavigationRoute.Home) {
-                        popUpTo(0)
-                    }
-                }
-            )
-        }
+        //chiedi all'ila per la questione 1 VM - 2 REP
+        composable<NavigationRoute.Settings> { SettingScreen(navController, authVM) }
         composable<NavigationRoute.ChangePassword> { ChangePasswordScreen(navController, authVM) }
         composable<NavigationRoute.EditProfile> { EditProfileScreen(navController, authVM) }
     }

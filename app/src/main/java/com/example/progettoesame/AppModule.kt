@@ -3,9 +3,11 @@ package com.example.progettoesame
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import com.example.progettoesame.data.AuthManager
 import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
+import com.example.progettoesame.data.repositories.AuthRepository
 import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
@@ -33,7 +35,10 @@ val appModule = module {
             supabaseUrl = "https://gerqtvdadryakiqvqita.supabase.co",
             supabaseKey = "sb_publishable_Dq9MKADaMDUdSSzfQZ-3-A_1eMwf6cH"
         ) {
-            install(Auth)
+            install(Auth) {
+                scheme = "progettoesame"
+                host = "login-callback"
+            }
             install(Postgrest)
             install(Storage)
         }
@@ -50,6 +55,7 @@ val appModule = module {
     }
 
     single { get<Context>().dataStore }
+    single { AuthManager(get()) }
     single { SyncManager(get()) }
 
     single { SplashRepository(get<ProjectDatabase>().CategoryDAO(),
@@ -69,13 +75,14 @@ val appModule = module {
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO()) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
+    single { AuthRepository(get()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
-    viewModel { AuthViewModel() }
+    viewModel { AuthViewModel(get()) }
 
     worker { SyncWorker(get(), get(), get()) }
 }

@@ -22,10 +22,11 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(navController: NavHostController, onLogout: () -> Unit) {
+fun SettingScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     var isDarkTheme by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -59,12 +60,20 @@ fun SettingScreen(navController: NavHostController, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
             SettingsItem(icon = Icons.Default.Person, label = "Modifica Profilo", hasArrow = true, onClick = { navController.navigate(NavigationRoute.EditProfile) })
             Spacer(modifier = Modifier.height(12.dp))
-            SettingsItem(icon = Icons.Default.ExitToApp, label = "Esci dall'account", hasArrow = false,
-                onClick = { navController.navigate(NavigationRoute.Home){
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true
+            SettingsItem(
+                icon = Icons.Default.ExitToApp,
+                label = "Esci dall'account",
+                hasArrow = false,
+                onClick = {
+                    authViewModel.logout {
+                        navController.navigate(NavigationRoute.Home) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
                     }
-                }})
+                }
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
