@@ -27,6 +27,17 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         _isError.value = true
     }
 
+    fun getUsername() {
+        viewModelScope.launch {
+            try {
+                val username = repository.getUsername()
+                _currentUsername.value = username
+            } catch (e: Exception) {
+                _currentUsername.value = ""
+            }
+        }
+    }
+
     fun signUp(email: String, pass: String, username: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -82,6 +93,49 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             } catch (e: Exception) {
                 _isError.value = true
                 _errorMessage.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateProfile(newEmail: String, newUsername: String, oldUsername: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            try {
+                val currentEmail = AuthState.userEmail.value
+                val emailChanged = newEmail != currentEmail && newEmail.isNotBlank()
+                val usernameChanged = newUsername != oldUsername && newUsername.isNotBlank()
+
+                repository.updateProfile(
+                    newEmail = if (emailChanged) newEmail else null,
+                    newUsername = if (usernameChanged) newUsername else null
+                )
+
+                if (emailChanged) {
+                    _isError.value = false
+                    _errorMessage.value = "Controlla la tua posta per confermare la nuova email!"
+                } else {
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                _isError.value = true
+                _errorMessage.value = when {
+                    e.message?.contains("A user with this email address has already been registered") == true ->
+                        "Questa email è già associata a un altro account."
+                    e.message?.contains("User already exists") == true ->
+                        "Utente già registrato."
+                    e.message?.contains("invalid format") == true ->
+                        "Inserisci un indirizzo email valido"
+                    e.message?.contains("For security purposes, you") == true -> {
+                        val seconds = e.message?.filter { it.isDigit() } ?: ""
+                        "Per motivi di sicurezza, potrai riprovare tra $seconds secondi."
+                    }
+                    e.message?.contains("rate limit") == true ->
+                        "Troppe richieste in breve tempo. Riprova tra poco."
+                    else -> "${e.localizedMessage}"
+                }
             } finally {
                 _isLoading.value = false
             }

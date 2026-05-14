@@ -11,6 +11,20 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class AuthRepository(private val supabase: SupabaseClient) {
+    suspend fun getUsername(): String {
+        val userId = AuthState.userId.value ?: return ""
+        return try {
+            val userRow = supabase.from("users")
+                .select {
+                    filter { eq("user_id", userId) }
+                }.decodeSingleOrNull<JsonObject>()
+
+            userRow?.get("username")?.toString()?.replace("\"", "") ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     suspend fun signUp(email: String, pass: String, username: String) {
         if (email.isBlank() || pass.isBlank() || username.isBlank()) {
             throw Exception("Compila tutti i campi")
@@ -42,7 +56,6 @@ class AuthRepository(private val supabase: SupabaseClient) {
         } catch (e: Exception) {
             val message = when {
                 e.message?.contains("User already registered") == true -> "L'utente esiste già con questa email"
-                //e.message?.contains("Password should be") == true -> "La password è troppo corta (minimo 6 caratteri)"
                 else -> e.message ?: "Errore durante la registrazione"
             }
             throw Exception(message)
@@ -120,6 +133,31 @@ class AuthRepository(private val supabase: SupabaseClient) {
                 else -> e.message ?: "Errore durante l'aggiornamento"
             }
             throw Exception(message)
+        }
+    }
+
+    suspend fun updateProfile(newEmail: String? = null, newUsername: String? = null) {
+        val currentUserId = AuthState.userId.value ?: throw Exception("Sessione scaduta")
+        val currentUserEmail = AuthState.userEmail.value
+
+        if (newUsername != null) {
+            val existingUser = supabase.from("users")
+                .select { filter { eq("username", newUsername) } }
+                .decodeSingleOrNull<JsonObject>()
+
+            if (existingUser != null && existingUser["user_id"]?.toString()?.replace("\"", "") != currentUserId) {
+                throw Exception("Lo username è già stato utilizzato")
+            }
+
+            supabase.from("users").update({ set("username", newUsername) }) {
+                filter { eq("user_id", currentUserId) }
+            }
+        }
+
+        if (newEmail != null && newEmail != currentUserEmail) {
+            supabase.auth.updateUser {
+                email = newEmail
+            }
         }
     }
 
