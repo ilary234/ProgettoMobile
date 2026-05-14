@@ -8,10 +8,20 @@ import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthScreenTemplate
+import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @Composable
 fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(4000)
+            authViewModel.clearError()
+        }
+    }
+
     AuthScreenTemplate(
         onBackClick = { navController.navigateUp() },
         title = "Crea un account",
@@ -30,5 +40,10 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
         },
         onFooterClick = { navController.navigateUp() },
         isSignUp = true
+    )
+
+    FeedbackBanner(
+        message = errorMessage ?: "",
+        isVisible = errorMessage != null
     )
 }

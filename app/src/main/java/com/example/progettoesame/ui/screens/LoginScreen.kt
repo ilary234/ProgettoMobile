@@ -9,10 +9,20 @@ import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthScreenTemplate
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @Composable
 fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(4000)
+            authViewModel.clearError()
+        }
+    }
+
     AuthScreenTemplate(
         onBackClick = { navController.navigateUp() },
         title = "Bentornato",
@@ -30,5 +40,10 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
             append("Non hai un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Registrati") }
         },
         onFooterClick = { navController.navigate(NavigationRoute.SignUp) }
+    )
+
+    FeedbackBanner(
+        message = errorMessage ?: "",
+        isVisible = errorMessage != null
     )
 }

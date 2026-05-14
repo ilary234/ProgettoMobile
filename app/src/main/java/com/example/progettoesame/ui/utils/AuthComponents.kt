@@ -1,5 +1,10 @@
 package com.example.progettoesame.ui.utils
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -29,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -252,4 +260,45 @@ fun LegalText() {
         style = TextStyle(fontSize = 12.sp, textAlign = TextAlign.Center),
         modifier = Modifier.padding(bottom = 24.dp)
     )
+}
+
+@Composable
+fun FeedbackBanner(message: String, isVisible: Boolean, isError: Boolean = true) {
+    val backgroundColor = if (isError) Color(0xFFFFEBEE) else Color(0xFFE8F5E9)
+    val contentColor = if (isError) Color(0xFFD32F2F) else Color(0xFF2E7D32)
+    val icon = if (isError) Icons.Default.ErrorOutline else Icons.Default.CheckCircle
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .statusBarsPadding(),
+            color = backgroundColor,
+            shape = RoundedCornerShape(12.dp),
+            shadowElevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = message,
+                    color = contentColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
 }
