@@ -14,6 +14,7 @@ import com.example.progettoesame.data.repositories.SplashRepository
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
+import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
@@ -62,11 +63,11 @@ val appModule = module {
                               get<ProjectDatabase>().UserDAO(),
                        get<ProjectDatabase>().UserFavouriteDAO(),
                             get<ProjectDatabase>().UserRatedDAO(), get()) }
-    single { CategoryRepository(get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
+    single { CategoryRepository(get<ProjectDatabase>().CategoryDAO()) }
     single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(),
                                 get<ProjectDatabase>().UserDAO(),
                         get<ProjectDatabase>().UserFavouriteDAO(),
-                        get<ProjectDatabase>().UserRatedDAO()) }
+                        get<ProjectDatabase>().UserRatedDAO(),) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
 
     viewModel { SplashViewModel(get()) }
@@ -74,6 +75,7 @@ val appModule = module {
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
+    viewModel { NewRecipeViewModel(get(), get()) }
 
     worker { SyncWorker(get(), get(), get()) }
 }

@@ -20,9 +20,11 @@ import com.example.progettoesame.ui.screens.SignUpScreen
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
+import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 sealed interface NavigationRoute {
     @Serializable data object Login : NavigationRoute
@@ -31,7 +33,7 @@ sealed interface NavigationRoute {
     @Serializable data object Error : NavigationRoute
     @Serializable data class CategoryRecipes(val categoryId : String, val categoryName : String) : NavigationRoute
     @Serializable data class RecipeDetails(val recipeId : String) : NavigationRoute
-    @Serializable data object NewRecipe : NavigationRoute
+    @Serializable data class NewRecipe(val recipeId : String? = null) : NavigationRoute
     @Serializable data class Profile(val userId : Int) : NavigationRoute
     @Serializable data class Settings(val userId : Int) : NavigationRoute
     @Serializable data object ChangePassword : NavigationRoute
@@ -73,7 +75,13 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             val route = backStackEntry.toRoute<NavigationRoute.RecipeDetails>()
             RecipeScreen(navController, recipeVm, route.recipeId)
         }
-        composable<NavigationRoute.NewRecipe> { NewRecipeScreen(navController) }
+        composable<NavigationRoute.NewRecipe> { backStackEntry ->
+            val route = backStackEntry.toRoute<NavigationRoute.NewRecipe>()
+            val newRecipeVm = koinViewModel<NewRecipeViewModel>(
+                parameters = { parametersOf(route.recipeId) }
+            )
+            NewRecipeScreen(navController, newRecipeVm)
+        }
         composable<NavigationRoute.Profile> { backStackEntry ->
             val route = backStackEntry.toRoute<NavigationRoute.Profile>()
             if (isLoggedIn) {

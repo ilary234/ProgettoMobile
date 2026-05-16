@@ -3,6 +3,7 @@ package com.example.progettoesame.data.repositories
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.UserFavourite
 import com.example.progettoesame.data.database.UserRated
+import com.example.progettoesame.data.database.daos.CategoryDAO
 import com.example.progettoesame.data.database.daos.RecipeDAO
 import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.daos.UserFavouriteDAO
@@ -28,7 +29,11 @@ class RecipeRepository(private val recipeDAO: RecipeDAO,
 
     suspend fun updateRating(recipeId: String, userId: String, rating: Int) = userRatedDAO.upsert(
         UserRated(userId, recipeId, rating, getFormattedTimeStamp(), false, false))
-
+    //TODO aggiungere aggiornamento averageRating della ricetta
     suspend fun deleteRating(recipeId: String, userId: String) = userRatedDAO.upsert(
         UserRated(userId, recipeId, 0, getFormattedTimeStamp(), true, false))
+
+    suspend fun getRecipesFromCategory(categoryId: String) : List<Recipe> = recipeDAO.getRecipesFromCategory(categoryId)
+
+    suspend fun getUserFavorites(userId: String) : List<UserFavourite> = userFavouriteDAO.getUserFavorites(userId)
 }
