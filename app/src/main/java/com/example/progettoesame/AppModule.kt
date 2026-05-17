@@ -75,7 +75,7 @@ val appModule = module {
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
-    viewModel { NewRecipeViewModel(get(), get()) }
+    viewModel { NewRecipeViewModel(get(), get(),get(), get()) }
 
     worker { SyncWorker(get(), get(), get()) }
 }

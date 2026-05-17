@@ -1,7 +1,10 @@
 package com.example.progettoesame.ui.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -22,7 +25,9 @@ fun shareRecipe(context: Context, title: String, previewImageUrl: String) {
     }
 
     val shareIntent = Intent.createChooser(sendIntent, "Condividi con:")
-    context.startActivity(shareIntent)
+    if (sendIntent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(shareIntent)
+    }
 }
 
 fun formatTime(time: Int) : String {
@@ -43,4 +48,13 @@ fun getFormattedTimeStamp() : String {
 
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
     return  italianTime.format(formatter)
+}
+
+fun createImageUriInGallery(ctx: Context) : Uri? {
+    val name =  "Ricetta_${System.currentTimeMillis()}"
+    val values = ContentValues()
+    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+    values.put(MediaStore.Images.Media.DISPLAY_NAME, name)
+
+    return ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 }

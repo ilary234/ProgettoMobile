@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.util.UUID
 
 @Serializable
 @Entity(tableName = "categories")
@@ -21,7 +22,7 @@ data class Category (
 data class User (
     @PrimaryKey
     @SerialName("user_id")
-    val userId: String,
+    val userId: String = UUID.randomUUID().toString(),
     @SerialName("username") val username : String,
     @SerialName("email") val email : String,
     @SerialName("recipe_number") val recipeNumber : Int = 0,
@@ -54,7 +55,7 @@ data class Step (
 @Entity(tableName = "recipes")
 data class Recipe (
     @PrimaryKey
-    @SerialName("recipe_id") val recipeId : String,
+    @SerialName("recipe_id") val recipeId : String = UUID.randomUUID().toString(),
     @SerialName("title") val title : String,
     @SerialName("author_id") val author : String,
     @SerialName("category_id") val category : String,

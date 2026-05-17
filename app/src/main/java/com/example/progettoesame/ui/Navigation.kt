@@ -77,10 +77,8 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
         }
         composable<NavigationRoute.NewRecipe> { backStackEntry ->
             val route = backStackEntry.toRoute<NavigationRoute.NewRecipe>()
-            val newRecipeVm = koinViewModel<NewRecipeViewModel>(
-                parameters = { parametersOf(route.recipeId) }
-            )
-            NewRecipeScreen(navController, newRecipeVm)
+            val newRecipeVm = koinViewModel<NewRecipeViewModel>()
+            NewRecipeScreen(navController, newRecipeVm, route.recipeId)
         }
         composable<NavigationRoute.Profile> { backStackEntry ->
             val route = backStackEntry.toRoute<NavigationRoute.Profile>()
