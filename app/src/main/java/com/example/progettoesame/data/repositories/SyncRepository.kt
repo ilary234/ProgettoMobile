@@ -98,8 +98,8 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
         }
     }
 
-    suspend fun uploadImage(fileName: String, imageBytes: ByteArray): String? {
-        return try {
+    suspend fun uploadImage(fileName: String, imageBytes: ByteArray): String? = withContext(Dispatchers.IO){
+        return@withContext try {
             val bucket = supabase.storage.from("Ricette")
             bucket.upload(path = fileName, data = imageBytes) {
                 upsert = true
@@ -109,6 +109,17 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
             url
         } catch (e: Exception) {
             Log.e("Sync", "Errore durante l'upload", e)
+            null
+        }
+    }
+
+    suspend fun deleteImage(url: String) = withContext(Dispatchers.IO){
+        try {
+            val fileName = url.substringAfterLast("/")
+            val bucket = supabase.storage.from("Ricette")
+            bucket.delete(fileName)
+        } catch (e: Exception) {
+            Log.e("Sync", "Errore durante l'eliminazione dell'immagine", e)
             null
         }
     }
