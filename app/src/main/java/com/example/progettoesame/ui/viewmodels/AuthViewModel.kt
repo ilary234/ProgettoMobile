@@ -83,6 +83,41 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
+    fun resetPassword(email: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            _isError.value = true
+            try {
+                repository.resetPassword(email)
+                _isError.value = false
+                _errorMessage.value = "Email di reset inviata! Controlla la tua posta."
+            } catch (e: Exception) {
+                _isError.value = true
+                _errorMessage.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updatePasswordFromReset(newP: String, confP: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            try {
+                repository.updatePassword(newP, confP)
+                _isError.value = false
+                onSuccess()
+            } catch (e: Exception) {
+                _isError.value = true
+                _errorMessage.value = e.message ?: "Errore durante l'aggiornamento della password"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun updatePasswordStandard(oldP: String, newP: String, confP: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true

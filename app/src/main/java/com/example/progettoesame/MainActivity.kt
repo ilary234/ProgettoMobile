@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.progettoesame.ui.NavGraph
 import com.example.progettoesame.ui.theme.ProgettoEsameTheme
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.SupabaseClient
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-        supabaseClient.handleDeeplinks(intent)
+        handleIncomingIntent(intent)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -50,6 +51,16 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        supabaseClient.handleDeeplinks(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        intent?.data?.let { data ->
+            supabaseClient.handleDeeplinks(intent)
+            val fullUrl = data.toString()
+            if (fullUrl.contains("type=recovery") || fullUrl.contains("recovery")) {
+                AuthState.enableResetModeOnly()
+            }
+        }
     }
 }

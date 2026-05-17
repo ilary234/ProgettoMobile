@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,8 +70,10 @@ fun AuthScreenTemplate(
     title: String,
     subtitle: String,
     buttonText: String,
+    isLoading: Boolean = false,
     onSocialGoogleClick: () -> Unit,
     onButtonClick: (email: String, pass: String, username: String) -> Unit,
+    onForgotPasswordClick: ((String) -> Unit)? = null,
     footerText: AnnotatedString,
     onFooterClick: () -> Unit,
     isSignUp: Boolean = false
@@ -170,6 +174,23 @@ fun AuthScreenTemplate(
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = "Password dimenticata?",
+                        modifier = Modifier
+                            .clickable { onForgotPasswordClick?.invoke(email) },
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -180,7 +201,11 @@ fun AuthScreenTemplate(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text(buttonText, color = Color.White)
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(buttonText, color = Color.White)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

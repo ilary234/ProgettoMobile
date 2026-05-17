@@ -37,6 +37,7 @@ sealed interface NavigationRoute {
     @Serializable data object Settings : NavigationRoute
     @Serializable data object ChangePassword : NavigationRoute
     @Serializable data object EditProfile : NavigationRoute
+    @Serializable data object ResetPassword : NavigationRoute
 }
 
 @Composable
@@ -73,5 +74,6 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
         composable<NavigationRoute.Settings> { SettingScreen(navController, authVM) }
         composable<NavigationRoute.ChangePassword> { ChangePasswordScreen(navController, authVM) }
         composable<NavigationRoute.EditProfile> { EditProfileScreen(navController, authVM) }
+        composable<NavigationRoute.ResetPassword> { ChangePasswordScreen(navController, authVM, isFromReset = true) }
     }
 }

@@ -23,7 +23,11 @@ class AuthManager(private val supabase: SupabaseClient) {
                 is SessionStatus.Authenticated -> {
                     val user = status.session.user
                     if (user != null) {
-                        AuthState.setLoggedIn(user.id, user.email!!)
+                        AuthState.setLoggedIn(
+                            id = user.id,
+                            email = user.email!!,
+                            isResetMode = AuthState.isResetPasswordMode.value
+                        )
                     }
                 }
                 is SessionStatus.NotAuthenticated -> {

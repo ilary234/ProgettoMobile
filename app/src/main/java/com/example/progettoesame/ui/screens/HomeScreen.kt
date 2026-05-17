@@ -43,6 +43,14 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
         "NomeApp"
     }
 
+    val isResetMode by AuthState.isResetPasswordMode
+
+    LaunchedEffect(isResetMode) {
+        if (isResetMode) {
+            navController.navigate(NavigationRoute.ResetPassword)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.White,

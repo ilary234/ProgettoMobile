@@ -8,12 +8,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthScreenTemplate
-import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @Composable
 fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val isLoading by authViewModel.isLoading.collectAsState()
     val errorMessage by authViewModel.errorMessage.collectAsState()
 
     LaunchedEffect(errorMessage) {
@@ -28,6 +28,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
         title = "Bentornato",
         subtitle = "Accedi per continuare",
         buttonText = "Accedi",
+        isLoading = isLoading,
         onSocialGoogleClick = { authViewModel.signInWithGoogle() },
         onButtonClick = { email, pass, _ ->
             authViewModel.login(email, pass) {
@@ -35,6 +36,9 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                     popUpTo(NavigationRoute.Login) { inclusive = true }
                 }
             }
+        },
+        onForgotPasswordClick = { email ->
+            authViewModel.resetPassword(email)
         },
         footerText = buildAnnotatedString {
             append("Non hai un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Registrati") }

@@ -57,15 +57,29 @@ object AuthState { //per utilizzare il valore nelle varie classi bisogna scriver
     private val _userEmail = mutableStateOf<String?>(null)
     val userEmail: State<String?> = _userEmail
 
-    fun setLoggedIn(id: String, email: String) {
+    private val _isResetPasswordMode = mutableStateOf(false)
+    val isResetPasswordMode: State<Boolean> = _isResetPasswordMode
+
+    fun setLoggedIn(id: String, email: String, isResetMode: Boolean = false) {
         _userId.value = id
         _userEmail.value = email
+        _isResetPasswordMode.value = isResetMode
         _isLoggedIn.value = true
+    }
+
+    fun enableResetModeOnly() {
+        _isResetPasswordMode.value = true
+        _isLoggedIn.value = true
+    }
+
+    fun disableResetModeOnly() {
+        _isResetPasswordMode.value = false
     }
 
     fun setLoggedOut() {
         _userId.value = null
         _userEmail.value = null
+        _isResetPasswordMode.value = false
         _isLoggedIn.value = false
     }
 }

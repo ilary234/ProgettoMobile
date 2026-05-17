@@ -67,9 +67,7 @@ fun SettingScreen(navController: NavHostController, authViewModel: AuthViewModel
                 onClick = {
                     authViewModel.logout {
                         navController.navigate(NavigationRoute.Home) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true
-                            }
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
                         }
                     }
                 }

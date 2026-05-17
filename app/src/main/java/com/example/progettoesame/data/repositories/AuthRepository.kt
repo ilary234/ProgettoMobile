@@ -98,6 +98,17 @@ class AuthRepository(private val supabase: SupabaseClient) {
         }
     }
 
+    suspend fun resetPassword(email: String) {
+        if (email.isBlank()) {
+            throw Exception("Inserisci l'email per resettare la password")
+        }
+        try {
+            supabase.auth.resetPasswordForEmail(email)
+        } catch (e: Exception) {
+            throw Exception("Errore nell'invio dell'email di reset")
+        }
+    }
+
     suspend fun updatePassword(newPass: String, confirmPass: String, oldPass: String? = null) {
         if (newPass.isBlank() || confirmPass.isBlank()) {
             throw Exception("Compila tutti i campi")
@@ -128,6 +139,7 @@ class AuthRepository(private val supabase: SupabaseClient) {
             }
         } catch (e: Exception) {
             val message = when {
+                e.message?.contains("New password should be different") == true -> "La nuova password non può essere uguale a quella attuale"
                 e.message?.contains("Invalid login credentials") == true -> "La password attuale è errata"
                 e.message?.contains("network") == true -> "Errore di connessione"
                 else -> e.message ?: "Errore durante l'aggiornamento"

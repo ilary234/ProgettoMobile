@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -40,6 +39,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
@@ -47,9 +48,11 @@ import com.example.progettoesame.ui.viewmodels.AuthViewModel
 @Composable
 fun ChangePasswordScreen(
     navController: NavHostController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    isFromReset: Boolean = false
 ) {
     val errorMessage by authViewModel.errorMessage.collectAsState()
+    val isFromReset = remember { isFromReset }
 
     var oldPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
@@ -65,18 +68,31 @@ fun ChangePasswordScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        if (isFromReset) {
+            AuthState.disableResetModeOnly()
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Cambia Password",
+                        text = if (isFromReset) "Reset Password" else "Cambia Password",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = {
+                        if(isFromReset) {
+                            navController.navigate(NavigationRoute.Home) {
+                                popUpTo(NavigationRoute.ResetPassword) { inclusive = true }
+                            }
+                        } else {
+                            navController.navigateUp()
+                        } }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Indietro"
@@ -112,22 +128,24 @@ fun ChangePasswordScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            if (!isFromReset) {
+                Spacer(modifier = Modifier.height(40.dp))
 
-            OutlinedTextField(
-                value = oldPassword,
-                onValueChange = { oldPassword = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password Attuale") },
-                visualTransformation = if (oldPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (oldPassVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { oldPassVisible = !oldPassVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
-                    }
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
+                OutlinedTextField(
+                    value = oldPassword,
+                    onValueChange = { oldPassword = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Password Attuale") },
+                    visualTransformation = if (oldPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (oldPassVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { oldPassVisible = !oldPassVisible }) {
+                            Icon(imageVector = image, contentDescription = null)
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -161,8 +179,17 @@ fun ChangePasswordScreen(
 
             Button(
                 onClick = {
-                    authViewModel.updatePasswordStandard(oldPassword, newPassword, confirmPassword) {
-                        navController.popBackStack()
+                    if (isFromReset) {
+                        authViewModel.updatePasswordFromReset(newPassword, confirmPassword) {
+                            navController.navigate(NavigationRoute.Home) {
+                                popUpTo(NavigationRoute.ResetPassword) { inclusive = true }
+                            }
+                        }
+                    }
+                    else {
+                        authViewModel.updatePasswordStandard(oldPassword, newPassword, confirmPassword) {
+                            navController.popBackStack()
+                        }
                     }
                 },
                 modifier = Modifier
