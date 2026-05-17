@@ -1,12 +1,7 @@
 package com.example.progettoesame.ui.viewmodels
 
-import android.app.Application
-import android.content.ContentResolver
 import android.content.Context
-import android.graphics.ImageDecoder
-import android.net.Uri
 import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -19,7 +14,6 @@ import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.ui.utils.getFormattedTimeStamp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -160,7 +154,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
             _state.update { it.copy(steps = updatedSteps) }
         },
         onAddImage = { stepNumber, url ->
-            val updatedSteps = _state.value.steps.map { it ->
+            val updatedSteps = _state.value.steps.map {
                 if (it.number == stepNumber) it.copy(imageUrls = it.imageUrls + url) else it }
             _state.update { it.copy(steps = updatedSteps) }
         },
@@ -170,7 +164,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                 if (urlToDelete.startsWith("http")) syncRepository.deleteImage(urlToDelete)
                 val updatedImageUrls = _state.value.steps.filter { it.number == stepNumber }[0]
                     .imageUrls.filterIndexed { i, _ -> i != imageIndex }
-                val updatedSteps = _state.value.steps.map { it ->
+                val updatedSteps = _state.value.steps.map {
                     if (it.number == stepNumber) it.copy(imageUrls = updatedImageUrls) else it
                 }
                 _state.update { it.copy(steps = updatedSteps) }
@@ -179,7 +173,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
         onImageChange = { stepNumber, imageIndex, url ->
             val updatedImageUrls = _state.value.steps.filter { it.number == stepNumber }[0]
                 .imageUrls.mapIndexed { i, it -> if (i == imageIndex) url else it }
-            val updatedSteps = _state.value.steps.map { it ->
+            val updatedSteps = _state.value.steps.map {
                 if (it.number == stepNumber) it.copy(imageUrls = updatedImageUrls) else it }
             _state.update { it.copy(steps = updatedSteps) }
         }

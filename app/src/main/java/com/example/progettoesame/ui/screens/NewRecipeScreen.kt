@@ -145,7 +145,7 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
         containerColor = Color.White,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(if (recipeState.id == null) "Nuova ricetta" else "Modifica Ricetta", fontWeight = FontWeight.Bold) },
+                title = { Text(if (recipeId == null) "Nuova ricetta" else "Modifica Ricetta", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.White,
                     titleContentColor = Color.Black,

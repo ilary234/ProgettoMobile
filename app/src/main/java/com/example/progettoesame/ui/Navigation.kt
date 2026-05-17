@@ -24,7 +24,6 @@ import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 sealed interface NavigationRoute {
     @Serializable data object Login : NavigationRoute
