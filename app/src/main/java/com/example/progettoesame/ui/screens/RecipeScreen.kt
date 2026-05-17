@@ -22,11 +22,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
@@ -74,33 +75,19 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     val stepsState by recipeViewModel.stepsState.collectAsStateWithLifecycle()
     val isFavorite by recipeViewModel.isFavorite.collectAsStateWithLifecycle()
     val rating by recipeViewModel.rate.collectAsStateWithLifecycle()
+    val currentSpeakingId by recipeViewModel.currentSpeakingId.collectAsStateWithLifecycle()
+    val isFullAudioStarted by recipeViewModel.isFullAudioStarted.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
-    var isSpeaking by remember { mutableStateOf(false) }
 
     val ctx = LocalContext.current
 
-    val tts = remember { TextToSpeech(ctx) { status ->
-        }.apply {
-            setLanguage(Locale.getDefault())
-            setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {
-                    isSpeaking = true
-                }
-                override fun onDone(utteranceId: String?) {
-                    isSpeaking = false
-                }
-                override fun onError(utteranceId: String?) {
-                    isSpeaking = false
-                }
-            })
-        }
-    }
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
         if(true/*isLoggedIn*/) { //TODO
             recipeViewModel.getUserRecipeData(recipeId, "userId")
         }
+        recipeViewModel.initTts(ctx)
     }
 
     if(recipeState == null) {
@@ -120,16 +107,10 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
         )
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            tts.stop()
-            tts.shutdown()
-        }
-    }
-
     val currentData = recipeState ?: return
     val recipe = currentData.recipe
     val author = currentData.author
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
@@ -175,7 +156,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Tempi:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+                Text("Tempi:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
                 BulletPointText("Preparazione: ${formatTime(recipe.preparation)}")
                 if (recipe.waiting != null) {
                     BulletPointText("Riposo: ${formatTime(recipe.waiting)}")
@@ -219,75 +200,51 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                IconButton(onClick = {
-                    if (isSpeaking) {
-                        tts.stop()
-                        isSpeaking = false
-                    } else {
-                        val text = recipe.steps
-                            .sortedBy { it.number }
-                            .joinToString(separator = ". ") { it.description }
-                        val params = Bundle()
-                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "recipe_id")
-                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "recipe_id")
-                    }
-                }) {
-                    Icon(
-                        imageVector = if (isSpeaking) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Stop text-to-speech Icon",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Gray
-                    )
-                }
-            }
-            recipe.steps.sortedBy { it.number }.forEach { step ->
-                val isOpen = stepsState.stepStates[step] ?: false
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(12.dp))
-                            .padding(start = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Passaggio ${step.number}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
-                        IconButton(onClick = { recipeViewModel.actions.onToggleStep(step) }) {
+                        val isSpeaking = currentSpeakingId?.startsWith("full_recipe") ?: false
+                        IconButton(onClick = { recipeViewModel.onPlayPauseButtonClick() }) {
                             Icon(
-                                imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                contentDescription = "Arrow Icon",
+                                imageVector = if (isSpeaking) Icons.Default.Pause else Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = if (isSpeaking) "Pause audio Icon" else "Play audio Icon",
                                 modifier = Modifier.size(24.dp),
                                 tint = Color.Gray
                             )
                         }
-                    }
-                    if (isOpen) {
-                        if (step.imageUrls.isNotEmpty()) {
-                            val pagerState = rememberPagerState(
-                                pageCount = { step.imageUrls.size }
-                            )
 
-                            HorizontalPager(
-                                state = pagerState,
-                                contentPadding = PaddingValues(horizontal = 32.dp),
-                                pageSpacing = 16.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { page ->
-                                PreviewCard(
-                                    step.imageUrls[page],
-                                    "Passaggio ${step.number} - Foto ${page + 1}"
+                        if (isFullAudioStarted) {
+                            IconButton(onClick = { recipeViewModel.onFullRecipeStopButtonClick() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Stop,
+                                    contentDescription = "Stop audio Icon",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = Color.Gray
                                 )
                             }
                         }
-
-                        Text(text = step.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
                     }
+                }
+
+
+                recipe.steps.sortedBy { it.number }.forEach { step ->
+                    val isOpen = stepsState.stepStates[step] ?: false
+                    val stepAudioId = "step_${step.number}"
+                    StepElem(step.number, isOpen, currentSpeakingId, stepAudioId,
+                        { recipeViewModel.onStepStopButtonClick() },
+                        { text, stepAudioId -> recipeViewModel.onStepPlayButtonClick(text, stepAudioId) },
+                        { recipeViewModel.actions.onToggleStep(step)}, step.description, step.imageUrls)
                 }
             }
 
@@ -326,5 +283,72 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             }
 
         }
+    }
+}
+
+@Composable
+fun StepElem(number: Int, isOpen: Boolean,
+             currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: (String, String) -> Unit,
+             onToggleStep: () -> Unit, description: String, imageUrls: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f)
+                    .background(
+                        color = Color(0xfff7ead0),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(start = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Passaggio $number", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
+                IconButton(onClick =  onToggleStep ) {
+                    Icon(
+                        imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = "Arrow Icon",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Gray
+                    )
+                }
+            }
+            StepAudioButton(currentSpeakingId, stepAudioId, onStop, {onPlay(description, stepAudioId)})
+        }
+        if (isOpen) {
+            if (imageUrls.isNotEmpty()) {
+                val pagerState = rememberPagerState(
+                    pageCount = { imageUrls.size }
+                )
+
+                HorizontalPager(
+                    state = pagerState,
+                    contentPadding = PaddingValues(horizontal = 32.dp),
+                    pageSpacing = 16.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) { page ->
+                    PreviewCard(
+                        imageUrls[page],
+                        "Passaggio ${number} - Foto ${page + 1}"
+                    )
+                }
+            }
+
+            Text(text = description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+fun StepAudioButton(currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: () -> Unit) {
+    IconButton(onClick = { if (currentSpeakingId == stepAudioId) onStop() else onPlay() }) {
+        Icon(
+            imageVector = if (currentSpeakingId == stepAudioId) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = if (currentSpeakingId == stepAudioId) "Stop audio Icon" else "Play audio Icon",
+            modifier = Modifier.size(24.dp),
+            tint = Color.Gray
+        )
     }
 }
