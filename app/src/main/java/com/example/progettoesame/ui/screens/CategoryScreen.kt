@@ -53,7 +53,7 @@ fun CategoryScreen(navController: NavController,
                    categoryId : String,
                    categoryName: String,
                    categoryViewModel: CategoryViewModel) {
-    val recipesState by categoryViewModel.recipesState.collectAsStateWithLifecycle()
+    val recipesState by categoryViewModel.favoriteState.collectAsStateWithLifecycle()
     val isRefreshing by categoryViewModel.isRefreshing.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 
