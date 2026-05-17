@@ -15,6 +15,7 @@ import com.example.progettoesame.ui.viewmodels.AuthViewModel
 fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     val isLoading by authViewModel.isLoading.collectAsState()
     val errorMessage by authViewModel.errorMessage.collectAsState()
+    val isError by authViewModel.isError.collectAsState()
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
@@ -48,6 +49,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
 
     FeedbackBanner(
         message = errorMessage ?: "",
-        isVisible = errorMessage != null
+        isVisible = errorMessage != null,
+        isError = isError
     )
 }
