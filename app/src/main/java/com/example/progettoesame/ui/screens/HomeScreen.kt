@@ -77,17 +77,20 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
             topBar = {
                 // alpha per nascondere senza rimuovere lo spazio
                 Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
-                    HomeTopBar(
-                        text = topBarTitle,
-                        onMenuClick = { isMenuOpen = true },
-                        onProfileClick = {
-                            if (isLoggedIn) {
-                                navController.navigate(NavigationRoute.Profile(AuthState.userId.value!!))
-                            } else {
-                                navController.navigate(NavigationRoute.Login)
+                    Column() {
+                        HomeTopBar(
+                            text = topBarTitle,
+                            onMenuClick = { isMenuOpen = true },
+                            onProfileClick = {
+                                if (isLoggedIn) {
+                                    navController.navigate(NavigationRoute.Profile(AuthState.userId.value!!))
+                                } else {
+                                    navController.navigate(NavigationRoute.Login)
+                                }
                             }
-                        }
-                    )
+                        )
+                        SearchBar()
+                    }
                 }
             }
         ) { paddingValues ->
@@ -103,12 +106,6 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                             .padding(paddingValues)
                             .fillMaxSize()
                     ) {
-                        item {
-                            Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
-                                SearchBar()
-                            }
-                        }
-
                         items(homeState.sections) { section ->
                             Column {
                                 SectionHeader(title = section.title)
