@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.InfoPreview
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.PreviewCard
@@ -59,11 +60,11 @@ fun CategoryScreen(navController: NavController,
     var showDialog by remember { mutableStateOf(false) }
 
     val onRefresh: () -> Unit = {
-        categoryViewModel.syncAndFetchRecipes("userId", categoryId) //TODO
+        categoryViewModel.syncAndFetchRecipes(AuthState.userId.value, categoryId)
     }
 
     LaunchedEffect(categoryId) {
-        categoryViewModel.fetchRecipes("userId", categoryId)
+        categoryViewModel.fetchRecipes(AuthState.userId.value, categoryId)
     }
 
     if (showDialog) {
@@ -136,8 +137,8 @@ fun CategoryScreen(navController: NavController,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = {
-                                if (false/*isLoggedIn()*/) {
-                                    categoryViewModel.actions.onFavorite(recipe, "userId") //TODO
+                                if (AuthState.isLoggedIn.value) {
+                                    categoryViewModel.actions.onFavorite(recipe, AuthState.userId.value!!)
                                 } else {
                                     showDialog = true
                                 }

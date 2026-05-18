@@ -26,21 +26,25 @@ class CategoryViewModel(private val repository: RecipeRepository,
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    private suspend fun loadData(userId: String, categoryId: String) {
+    private suspend fun loadData(userId: String?, categoryId: String) {
         val recipes = repository.getRecipesFromCategory(categoryId)
-        val favoritesIds = repository.getUserFavorites(userId).map { it.recipeId }.toSet()
-        _favoriteState.value = FavoriteState(recipes.associateWith { recipe ->
-            favoritesIds.contains(recipe.recipeId)
-        })
+        if (userId != null) {
+            val favoritesIds = repository.getUserFavorites(userId).map { it.recipeId }.toSet()
+            _favoriteState.value = FavoriteState(recipes.associateWith { recipe ->
+                favoritesIds.contains(recipe.recipeId)
+            })
+        } else {
+            _favoriteState.value = FavoriteState(recipes.associateWith { false })
+        }
     }
 
-    fun fetchRecipes(userId: String, categoryId: String) {
+    fun fetchRecipes(userId: String?, categoryId: String) {
         viewModelScope.launch {
             loadData(userId, categoryId)
         }
     }
 
-    fun syncAndFetchRecipes(userId: String, categoryId: String) {
+    fun syncAndFetchRecipes(userId: String?, categoryId: String) {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {

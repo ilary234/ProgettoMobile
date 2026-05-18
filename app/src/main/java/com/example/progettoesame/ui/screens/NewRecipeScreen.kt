@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.TimeType
 import com.example.progettoesame.ui.utils.Units
@@ -171,16 +172,6 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                errorMessage?.let {
-                    Text( //TODO sostituisci con FeedBackBunner di Mati
-                        text = it,
-                        color = Color.Red,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
                 if (recipeState.previewImageUrl != null) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         PreviewCard(recipeState.previewImageUrl!!, recipeState.title)
@@ -302,6 +293,16 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
                     Text("Salva", color = Color.White)
+                }
+            }
+            errorMessage?.let {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 80.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    FeedbackBanner(it, true)
                 }
             }
             if (isRefreshing) {

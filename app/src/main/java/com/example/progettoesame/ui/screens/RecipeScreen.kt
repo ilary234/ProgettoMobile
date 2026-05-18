@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.BulletPointText
 import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
@@ -79,8 +80,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
-        if(true/*isLoggedIn*/) { //TODO
-            recipeViewModel.getUserRecipeData(recipeId, "userId")
+        if(AuthState.isLoggedIn.value) {
+            recipeViewModel.getUserRecipeData(recipeId, AuthState.userId.value!!)
         }
         recipeViewModel.initTts(ctx)
     }
@@ -146,7 +147,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     textDecoration = TextDecoration.Underline,
                     color = MaterialTheme.colorScheme.primary, //TODO mettere colore secondary (arancione scuro in questo caso)
                     modifier = Modifier.weight(1f)
-                        .clickable{navController.navigate(NavigationRoute.Profile("sss"/*recipe.author*/))}) //TODO avevo messo una stringa a caso solo per far andare l'app
+                        .clickable{navController.navigate(NavigationRoute.Profile(recipe.author))})
                 RatingRow(recipe.averageRating)
             }
 
@@ -168,8 +169,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray)
                 }
                 IconButton(onClick = {
-                    if (false/*isLoggedIn()*/) {//TODO
-                        recipeViewModel.actions.onFavorite(recipe.recipeId, "userId")
+                    if (AuthState.isLoggedIn.value) {
+                        recipeViewModel.actions.onFavorite(recipe.recipeId, AuthState.userId.value!!)
                     } else {
                         showDialog = true
                     }
@@ -261,8 +262,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                         IconButton(
                             modifier = Modifier.size(20.dp),
                             onClick = {
-                            if (false/*isLoggedIn()*/) {//TODO
-                                recipeViewModel.actions.onRate(recipe.recipeId, "userId", index + 1)
+                            if (AuthState.isLoggedIn.value) {
+                                recipeViewModel.actions.onRate(recipe.recipeId, AuthState.userId.value!!, index + 1)
                             } else {
                                 showDialog = true
                             }}) {

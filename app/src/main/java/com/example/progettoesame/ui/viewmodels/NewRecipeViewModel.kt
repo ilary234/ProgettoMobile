@@ -215,8 +215,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                 val notValidIngredient = _state.value.ingredients.find { it.name.isEmpty() || it.quantity == 0f || it.unit.isEmpty() }
                 val notValidStep = _state.value.steps.find { it.description.isEmpty() }
                 if (notValidIngredient != null || notValidStep != null) {
-                    _errorMessage.update { """C'è stato un errore durante il caricamento. 
-                    Controlla di aver inserito tutti i campi degli ingredienti e la descrizione dei passaggi.""".trimMargin() }
+                    _errorMessage.update { "C'è stato un errore durante il caricamento. Controlla di aver inserito tutti i campi degli ingredienti e la descrizione dei passaggi." }
                     _isRefreshing.value = false
                     return@launch
                 }
@@ -225,8 +224,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                 val updatedPreviewUri = updateImageStorageUrl(ctx, _state.value.previewImageUrl!!)
                 if (updatedPreviewUri == null) {
                     _isRefreshing.value = false
-                    _errorMessage.update { """C'è stato un errore durante il caricamento delle immagini.
-                                            Assicurati di essere connesso ad internet e riprova.""".trimMargin() }
+                    _errorMessage.update { "C'è stato un errore durante il caricamento delle immagini. Assicurati di essere connesso ad internet e riprova." }
                     return@launch
                 }
                 recipeActions.onPreviewImageChange(updatedPreviewUri)
@@ -236,8 +234,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                         val updatedImageUri = updateImageStorageUrl(ctx, uri)
                         if (updatedImageUri == null) {
                             _isRefreshing.value = false
-                            _errorMessage.update { """C'è stato un errore durante il caricamento delle immagini.
-                                            Assicurati di essere connesso ad internet e riprova.""".trimMargin() }
+                            _errorMessage.update { "C'è stato un errore durante il caricamento delle immagini. Assicurati di essere connesso ad internet e riprova."}
                             return@launch
                         }
                         stepActions.onImageChange(it.number, i, updatedImageUri)
