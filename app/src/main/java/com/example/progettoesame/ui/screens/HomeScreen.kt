@@ -25,7 +25,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.utils.InfoPreview
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
+import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RecipeCard
 import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
@@ -42,6 +44,9 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
     var showLoginDialog by remember { mutableStateOf(false) }
     val isLoggedIn by AuthState.isLoggedIn
     val userEmail by AuthState.userEmail
+
+    val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchResults by homeViewModel.searchResults.collectAsStateWithLifecycle()
 
     val topBarTitle = if (isLoggedIn && !userEmail.isNullOrBlank()) {
         userEmail!!
@@ -89,7 +94,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                 }
                             }
                         )
-                        SearchBar()
+                        SearchBar(value = searchQuery, onValueChange = { homeViewModel.onSearchQueryChange(it, currentUserId) })
                     }
                 }
             }
@@ -106,38 +111,91 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                             .padding(paddingValues)
                             .fillMaxSize()
                     ) {
-                        items(homeState.sections) { section ->
-                            Column {
-                                SectionHeader(title = section.title)
+                        if (searchQuery.isNotBlank()) {
+                            if (searchResults.isEmpty()) {
+                                item {
+                                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                        Text("Nessuna ricetta trovata", color = Color.Gray)
+                                    }
+                                }
+                            } else {
+                                items(searchResults.entries.toList(), key = { it.key.recipeId }) { entry ->
+                                    val recipe = entry.key
+                                    val isFavorite = entry.value
 
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    contentPadding = PaddingValues(
-                                        horizontal = 16.dp,
-                                        vertical = 8.dp
-                                    )
-                                ) {
-                                    items(section.recipes.keys.toList()) { recipe ->
-                                        val isFavorite = section.recipes[recipe] ?: false
-                                        val totalTime = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
-
-                                        RecipeCard(
-                                            imageUrl = recipe.previewImageUrl,
-                                            title = recipe.title,
-                                            rating = recipe.averageRating.toDouble(),
-                                            time = formatTime(totalTime),
-                                            isFavorite = isFavorite,
-                                            onCardClick = {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                                            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(16.dp))
+                                            .padding(16.dp)
+                                            .clickable {
                                                 navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))
                                             },
-                                            onFavoriteClick = {
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        PreviewCard(recipe.previewImageUrl, recipe.title)
+
+                                        val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
+                                        InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            IconButton(onClick = {
                                                 if (AuthState.isLoggedIn.value) {
                                                     homeViewModel.actions.onFavorite(recipe, currentUserId)
                                                 } else {
                                                     showLoginDialog = true
                                                 }
+                                            }) {
+                                                Icon(
+                                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                                    contentDescription = "Favorite Icon",
+                                                    modifier = Modifier.size(24.dp),
+                                                    tint = if (isFavorite) Color.Red else Color.Gray
+                                                )
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            items(homeState.sections) { section ->
+                                Column {
+                                    SectionHeader(title = section.title)
+
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        contentPadding = PaddingValues(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp
                                         )
+                                    ) {
+                                        items(section.recipes.keys.toList()) { recipe ->
+                                            val isFavorite = section.recipes[recipe] ?: false
+                                            val totalTime = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
+
+                                            RecipeCard(
+                                                imageUrl = recipe.previewImageUrl,
+                                                title = recipe.title,
+                                                rating = recipe.averageRating.toDouble(),
+                                                time = formatTime(totalTime),
+                                                isFavorite = isFavorite,
+                                                onCardClick = {
+                                                    navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))
+                                                },
+                                                onFavoriteClick = {
+                                                    if (AuthState.isLoggedIn.value) {
+                                                        homeViewModel.actions.onFavorite(recipe, currentUserId)
+                                                    } else {
+                                                        showLoginDialog = true
+                                                    }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -220,10 +278,10 @@ fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit
 }
 
 @Composable
-fun SearchBar() {
+fun SearchBar(value: String, onValueChange: (String) -> Unit) {
     TextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = onValueChange,
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),

@@ -39,6 +39,12 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
     private val _homeState = MutableStateFlow(HomeState())
     val homeState = _homeState.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<Map<Recipe, Boolean>>(emptyMap())
+    val searchResults = _searchResults.asStateFlow()
+
     fun fetchHomeData(userId: String) {
         viewModelScope.launch {
             _homeState.value = _homeState.value.copy(isLoading = true)
@@ -81,13 +87,71 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
         }
     }
 
+    fun onSearchQueryChange(newQuery: String, userId: String) {
+        _searchQuery.value = newQuery
+
+        if (newQuery.isBlank()) {
+            _searchResults.value = emptyMap()
+            return
+        }
+
+        viewModelScope.launch {
+            val searchWords = newQuery.lowercase()
+                .split("\\s+".toRegex())
+                .filter { it.length >= 4 }
+
+            if (searchWords.isEmpty()) {
+                _searchResults.value = emptyMap()
+                return@launch
+            }
+
+            val wordToRecipesMap = mutableMapOf<String, List<Recipe>>()
+
+            for (word in searchWords) {
+                val recipesForWord = homeRepository.searchRecipesByWord(word)
+                wordToRecipesMap[word] = recipesForWord
+            }
+
+            val sortedSearchWords = searchWords.sortedBy { word ->
+                wordToRecipesMap[word]?.size ?: 0
+            }
+
+            val allMatchingRecipes = wordToRecipesMap.values.flatten().toSet()
+
+            val sortedRecipes = allMatchingRecipes.sortedWith { r1, r2 ->
+                val t1 = r1.title.lowercase()
+                val t2 = r2.title.lowercase()
+
+                var comparison = 0
+                for (word in sortedSearchWords) {
+                    val hasW1 = t1.contains(word)
+                    val hasW2 = t2.contains(word)
+                    if (hasW1 && !hasW2) {
+                        comparison = -1
+                        break
+                    } else if (!hasW1 && hasW2) {
+                        comparison = 1
+                        break
+                    }
+                }
+                comparison
+            }
+
+            val favoritesIds = categoryRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
+
+            _searchResults.value = sortedRecipes.associateWith { favoritesIds.contains(it.recipeId) }
+        }
+    }
+
     val actions = HomeActions(
         onFavorite = { recipe, userId ->
             viewModelScope.launch {
                 val currentSections = _homeState.value.sections
 
-                val isFavorite = currentSections.flatMap { it.recipes.entries }
-                    .firstOrNull { it.key.recipeId == recipe.recipeId }?.value ?: false
+                val isFavoriteInHome = currentSections.flatMap { it.recipes.entries }
+                    .firstOrNull { it.key.recipeId == recipe.recipeId }?.value
+                val isFavoriteInSearch = _searchResults.value[recipe]
+                val isFavorite = isFavoriteInHome ?: isFavoriteInSearch ?: false
 
                 if (isFavorite) {
                     categoryRepository.deleteFavorite(recipe.recipeId, userId)
@@ -105,6 +169,12 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
                     }
                 }
                 _homeState.value = _homeState.value.copy(sections = updatedSections)
+
+                if (_searchResults.value.containsKey(recipe)) {
+                    val newSearchMap = _searchResults.value.toMutableMap()
+                    newSearchMap[recipe] = !isFavorite
+                    _searchResults.value = newSearchMap
+                }
             }
         }
     )

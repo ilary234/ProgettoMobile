@@ -9,4 +9,5 @@ class HomeRepository(private val categoryDAO: CategoryDAO, private val recipeDAO
 
     suspend fun getTopRatedRecipes(): List<Recipe> = recipeDAO.getTopRatedRecipes()
 
+    suspend fun searchRecipesByWord(word: String): List<Recipe> = recipeDAO.searchRecipesByWord(word)
 }

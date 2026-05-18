@@ -34,4 +34,7 @@ interface RecipeDAO {
 
     @Query("SELECT * FROM recipes WHERE isDeleted = 0 ORDER BY averageRating DESC LIMIT 15")
     suspend fun getTopRatedRecipes(): List<Recipe>
+
+    @Query("SELECT * FROM recipes WHERE title LIKE '%' || :word || '%' AND isDeleted = 0")
+    suspend fun searchRecipesByWord(word: String): List<Recipe>
 }
