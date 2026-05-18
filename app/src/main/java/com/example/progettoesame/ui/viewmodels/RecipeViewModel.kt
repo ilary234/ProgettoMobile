@@ -159,7 +159,12 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
         }},
         onRate = { recipeId, userId, rating -> viewModelScope.launch {
             if (_rate.value != rating) {
+                val currentRecipe = _recipe.value?.recipe ?: return@launch
+                val numberOfRatings = repository.getNumberOfRatings(recipeId)
+                val updatedRecipe = currentRecipe.copy(averageRating = ((currentRecipe.averageRating * numberOfRatings) + rating) / (numberOfRatings + 1))
                 repository.updateRating(recipeId, userId, rating)
+                repository.upsertRecipe(updatedRecipe)
+                _recipe.value = _recipe.value?.copy(recipe = updatedRecipe)
                 _rate.value = rating
             } else {
                 repository.deleteRating(recipeId, userId)

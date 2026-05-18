@@ -24,9 +24,9 @@ class RecipeRepository(private val recipeDAO: RecipeDAO,
         UserFavourite(userId, recipeId,getFormattedTimeStamp(), true, false))
     suspend fun updateRating(recipeId: String, userId: String, rating: Int) = userRatedDAO.upsert(
         UserRated(userId, recipeId, rating, getFormattedTimeStamp(), false, false))
-    //TODO aggiungere aggiornamento averageRating della ricetta
     suspend fun deleteRating(recipeId: String, userId: String) = userRatedDAO.upsert(
         UserRated(userId, recipeId, 0, getFormattedTimeStamp(), true, false))
     suspend fun getRecipesFromCategory(categoryId: String) : List<Recipe> = recipeDAO.getRecipesFromCategory(categoryId)
     suspend fun getUserFavorites(userId: String) : List<UserFavourite> = userFavouriteDAO.getUserFavorites(userId)
+    suspend fun getNumberOfRatings(recipeId: String) : Int = userRatedDAO.getNumberOfRatings(recipeId)
 }

@@ -22,6 +22,8 @@ interface UserRatedDAO {
     @Query("SELECT rating FROM user_rated_recipes WHERE userId = :userId AND recipeId = :recipeId AND isDeleted = 0")
     suspend fun getRating(userId: String, recipeId: String): Int?
 
+    @Query("SELECT COUNT(*) FROM user_rated_recipes WHERE recipeId = :recipeId AND isDeleted = 0")
+    suspend fun getNumberOfRatings(recipeId: String): Int
     @Upsert
     suspend fun upsert(userRated : UserRated)
 
