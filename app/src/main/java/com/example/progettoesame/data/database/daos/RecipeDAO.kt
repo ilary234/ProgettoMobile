@@ -23,6 +23,9 @@ interface RecipeDAO {
     @Query("SELECT * FROM recipes WHERE recipeId = :id")
     suspend fun getRecipe(id: String): Recipe
 
+    @Query("DELETE FROM recipes WHERE isDeleted = 1 AND datetime(updatedAt) < datetime('now', '-1 day')")
+    suspend fun hardDeleteRecipes()
+
     @Upsert
     suspend fun upsertAll(recipes: List<Recipe>)
 

@@ -3,6 +3,7 @@ package com.example.progettoesame
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import com.example.progettoesame.data.HardDeleteWorker
 import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
@@ -78,4 +79,5 @@ val appModule = module {
     viewModel { NewRecipeViewModel(get(), get(),get(), get()) }
 
     worker { SyncWorker(get(), get(), get()) }
+    worker { HardDeleteWorker(get(), get(), get()) }
 }

@@ -15,6 +15,9 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
 
 class SyncRepository(private val recipeDAO: RecipeDAO,
                      private val userDAO: UserDAO,
@@ -152,5 +155,24 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
         } catch (e: Exception) {
             Log.e("SyncRepository", "Error syncing data: ${e.message}")
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun hardDelete() = withContext(Dispatchers.IO) {
+        try {
+            val aDayAgo = Clock.System.now().minus(1.days).toString()
+            supabase.from("recipes").delete {
+                filter {
+                    eq("is_deleted", true)
+                    lt("updated_at", aDayAgo)
+                }
+            }
+
+            recipeDAO.hardDeleteRecipes()
+
+        } catch (e: Exception) {
+            Log.e("SyncRepository", "Error hard deleting data: ${e.message}")
+        }
+
     }
 }

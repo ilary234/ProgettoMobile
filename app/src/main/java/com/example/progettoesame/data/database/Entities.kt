@@ -1,6 +1,8 @@
 package com.example.progettoesame.data.database
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -72,7 +74,16 @@ data class Recipe (
 )
 
 @Serializable
-@Entity(tableName = "user_favourite_recipes", primaryKeys = ["userId", "recipeId"])
+@Entity(tableName = "user_favourite_recipes", primaryKeys = ["userId", "recipeId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Recipe::class,
+            parentColumns = ["recipeId"],
+            childColumns = ["recipeId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["recipeId"])])
 data class UserFavourite (
     @SerialName("user_id") val userId: String,
     @SerialName("recipe_id") val recipeId : String,
@@ -82,7 +93,16 @@ data class UserFavourite (
 )
 
 @Serializable
-@Entity(tableName = "user_rated_recipes", primaryKeys = ["userId", "recipeId"])
+@Entity(tableName = "user_rated_recipes", primaryKeys = ["userId", "recipeId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Recipe::class,
+            parentColumns = ["recipeId"],
+            childColumns = ["recipeId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["recipeId"])])
 data class UserRated (
     @SerialName("user_id") val userId: String,
     @SerialName("recipe_id") val recipeId : String,
