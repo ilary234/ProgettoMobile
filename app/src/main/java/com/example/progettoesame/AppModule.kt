@@ -3,15 +3,18 @@ package com.example.progettoesame
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
+import com.example.progettoesame.data.AuthManager
 import com.example.progettoesame.data.HardDeleteWorker
 import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
+import com.example.progettoesame.data.repositories.AuthRepository
 import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
@@ -34,7 +37,10 @@ val appModule = module {
             supabaseUrl = "https://gerqtvdadryakiqvqita.supabase.co",
             supabaseKey = "sb_publishable_Dq9MKADaMDUdSSzfQZ-3-A_1eMwf6cH"
         ) {
-            install(Auth)
+            install(Auth) {
+                scheme = "progettoesame"
+                host = "login-callback"
+            }
             install(Postgrest)
             install(Storage)
         }
@@ -51,6 +57,7 @@ val appModule = module {
     }
 
     single { get<Context>().dataStore }
+    single { AuthManager(get()) }
     single { SyncManager(get()) }
 
     single { SplashRepository(get<ProjectDatabase>().CategoryDAO(),
@@ -70,6 +77,7 @@ val appModule = module {
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO(),) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
+    single { AuthRepository(get()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get()) }
@@ -77,6 +85,7 @@ val appModule = module {
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
     viewModel { NewRecipeViewModel(get(), get(),get(), get()) }
+    viewModel { AuthViewModel(get()) }
 
     worker { SyncWorker(get(), get(), get()) }
     worker { HardDeleteWorker(get(), get(), get()) }

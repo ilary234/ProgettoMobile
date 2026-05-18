@@ -1,9 +1,15 @@
 package com.example.progettoesame.ui.utils
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,16 +22,25 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,14 +63,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progettoesame.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreenTemplate(
+    onBackClick: () -> Unit,
     title: String,
     subtitle: String,
     buttonText: String,
-    socialGoogleText: String,
-    socialAppleText: String,
+    isLoading: Boolean = false,
+    onSocialGoogleClick: () -> Unit,
     onButtonClick: (email: String, pass: String, username: String) -> Unit,
+    onForgotPasswordClick: ((String) -> Unit)? = null,
     footerText: AnnotatedString,
     onFooterClick: () -> Unit,
     isSignUp: Boolean = false
@@ -65,106 +83,161 @@ fun AuthScreenTemplate(
     var username by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .statusBarsPadding()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(60.dp))
-
-        Text(text = "Nome App", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
-        Text(text = subtitle, color = Color.Gray, textAlign = TextAlign.Center)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Password") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = null)
-                }
-            },
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        if (isSignUp) {
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Username") },
-                placeholder = { Text("Come vuoi farti chiamare?") },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Nome App",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Indietro",
+                            modifier = Modifier.size(28.dp) // Più grande per i meno esperti
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.White
+                )
             )
         }
+    ) { innerPadding ->
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button (
-            onClick = { onButtonClick(email, password, username) },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(buttonText, color = Color.White)
+            //Spacer(modifier = Modifier.height(60.dp))
+
+            /*Text(
+                text = "Nome App",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold
+            )*/
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(text = subtitle, color = Color.Gray, textAlign = TextAlign.Center)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Email") },
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Password") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            if (isSignUp) {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Username") },
+                    placeholder = { Text("Come vuoi farti chiamare?") },
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = "Password dimenticata?",
+                        modifier = Modifier
+                            .clickable { onForgotPasswordClick?.invoke(email) },
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { onButtonClick(email, password, username) },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(buttonText, color = Color.White)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SocialLoginButton(text = "Continua con Google", iconRes = R.drawable.ic_google, onClick = onSocialGoogleClick)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LegalText()
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = footerText,
+                modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() }
+            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row (verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-            Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray)
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SocialLoginButton(text = socialGoogleText, iconRes = R.drawable.ic_google)
-        Spacer(modifier = Modifier.height(12.dp))
-        SocialLoginButton(text = socialAppleText, iconRes = R.drawable.ic_apple)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LegalText()
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-            text = footerText,
-            modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() }
-        )
     }
 }
 
 @Composable
-fun SocialLoginButton(text: String, iconRes: Int) {
+fun SocialLoginButton(text: String, iconRes: Int, onClick : () -> Unit) {
     Button(
-        onClick = { },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp),
@@ -212,4 +285,45 @@ fun LegalText() {
         style = TextStyle(fontSize = 12.sp, textAlign = TextAlign.Center),
         modifier = Modifier.padding(bottom = 24.dp)
     )
+}
+
+@Composable
+fun FeedbackBanner(message: String, isVisible: Boolean, isError: Boolean = true) {
+    val backgroundColor = if (isError) Color(0xFFFFEBEE) else Color(0xFFE8F5E9)
+    val contentColor = if (isError) Color(0xFFD32F2F) else Color(0xFF2E7D32)
+    val icon = if (isError) Icons.Default.ErrorOutline else Icons.Default.CheckCircle
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .statusBarsPadding(),
+            color = backgroundColor,
+            shape = RoundedCornerShape(12.dp),
+            shadowElevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = message,
+                    color = contentColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
 }

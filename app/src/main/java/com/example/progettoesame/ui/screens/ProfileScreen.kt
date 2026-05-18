@@ -19,90 +19,122 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.progettoesame.ui.NavigationRoute
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, userId: Int) {
+fun ProfileScreen(navController: NavController) {
     var selectedTab by remember { mutableStateOf(0) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .statusBarsPadding()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.ArrowBack, null, modifier = Modifier.size(28.dp))
-            Icon(Icons.Default.Settings, null, modifier = Modifier.size(28.dp))
-        }
-
-        Row(
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(100.dp).clip(CircleShape).background(Color(0xFFFFD54F)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Person, null, modifier = Modifier.size(60.dp), tint = Color.White)
-            }
-            Spacer(modifier = Modifier.width(32.dp))
-            Row {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("30", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("Ricette", color = Color.Gray, fontSize = 14.sp)
-                }
-                Spacer(modifier = Modifier.width(24.dp))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("4.5", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Icon(Icons.Default.Star, null, modifier = Modifier.size(18.dp))
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Profilo", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
                     }
-                    Text("Valutazione", color = Color.Gray, fontSize = 14.sp)
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate(NavigationRoute.Settings) }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Impostazioni")
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(innerPadding)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier.size(100.dp).clip(CircleShape)
+                        .background(Color(0xFFFFD54F)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        null,
+                        modifier = Modifier.size(60.dp),
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(32.dp))
+                Row {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("30", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("Ricette", color = Color.Gray, fontSize = 14.sp)
+                    }
+                    Spacer(modifier = Modifier.width(24.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("4.5", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.Star, null, modifier = Modifier.size(18.dp))
+                        }
+                        Text("Valutazione", color = Color.Gray, fontSize = 14.sp)
+                    }
                 }
             }
-        }
 
-        Text("Username", modifier = Modifier.padding(start = 24.dp, top = 8.dp, bottom = 24.dp), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "Username",
+                modifier = Modifier.padding(start = 24.dp, top = 8.dp, bottom = 24.dp),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(45.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFF0F0F0))
-        ) {
-            Box(
-                modifier = Modifier.weight(1f).fillMaxHeight().background(if (selectedTab == 0) Color(0xFFDCDCDC) else Color.Transparent).clickable { selectedTab = 0 },
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(45.dp)
+                    .clip(RoundedCornerShape(8.dp)).background(Color(0xFFF0F0F0))
             ) {
-                Text("Le mie ricette", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal)
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                        .background(if (selectedTab == 0) Color(0xFFDCDCDC) else Color.Transparent)
+                        .clickable { selectedTab = 0 },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Le mie ricette",
+                        fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                        .background(if (selectedTab == 1) Color(0xFFDCDCDC) else Color.Transparent)
+                        .clickable { selectedTab = 1 },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Preferiti",
+                        fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
             }
-            Box(
-                modifier = Modifier.weight(1f).fillMaxHeight().background(if (selectedTab == 1) Color(0xFFDCDCDC) else Color.Transparent).clickable { selectedTab = 1 },
-                contentAlignment = Alignment.Center
+
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f) // prende tutto lo spazio disponibile tranne lo spacer sotto
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Text("Preferiti", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal)
+                items(5) { ProfileRecipeItem() }
             }
-        }
 
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f) // prende tutto lo spazio disponibile tranne lo spacer sotto
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            items(5) { ProfileRecipeItem() }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(30.dp)
+                    .background(Color.White)
+            )
         }
-
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(30.dp)
-                .background(Color.White)
-        )
     }
 }
 

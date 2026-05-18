@@ -6,20 +6,50 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthScreenTemplate
+import com.example.progettoesame.ui.utils.FeedbackBanner
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @Composable
-fun LoginScreen(navController: NavHostController, onNavigateToSignUp: () -> Unit) {
+fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) {
+    val isLoading by authViewModel.isLoading.collectAsState()
+    val errorMessage by authViewModel.errorMessage.collectAsState()
+    val isError by authViewModel.isError.collectAsState()
+
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            kotlinx.coroutines.delay(4000)
+            authViewModel.clearError()
+        }
+    }
+
     AuthScreenTemplate(
+        onBackClick = { navController.navigateUp() },
         title = "Bentornato",
         subtitle = "Accedi per continuare",
         buttonText = "Accedi",
-        socialGoogleText = "Accedi con Google",
-        socialAppleText = "Accedi con Apple",
-        onButtonClick = { email, pass, _ -> /* Login */ },
+        isLoading = isLoading,
+        onSocialGoogleClick = { authViewModel.signInWithGoogle() },
+        onButtonClick = { email, pass, _ ->
+            authViewModel.login(email, pass) {
+                navController.navigate(NavigationRoute.Home) {
+                    popUpTo(NavigationRoute.Login) { inclusive = true }
+                }
+            }
+        },
+        onForgotPasswordClick = { email ->
+            authViewModel.resetPassword(email)
+        },
         footerText = buildAnnotatedString {
             append("Non hai un account? "); withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Registrati") }
         },
-        onFooterClick = onNavigateToSignUp
+        onFooterClick = { navController.navigate(NavigationRoute.SignUp) }
+    )
+
+    FeedbackBanner(
+        message = errorMessage ?: "",
+        isVisible = errorMessage != null,
+        isError = isError
     )
 }

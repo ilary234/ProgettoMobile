@@ -1,6 +1,7 @@
 package com.example.progettoesame
 
 import android.app.Application
+import com.example.progettoesame.data.AuthManager
 import com.example.progettoesame.data.SyncManager
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -10,6 +11,7 @@ import org.koin.core.context.startKoin
 
 class ProgettoEsameApplication : Application() {
     private val syncManager: SyncManager by inject()
+    private val authManager: AuthManager by inject()
     override fun onCreate() {
         super.onCreate()
 
@@ -21,5 +23,6 @@ class ProgettoEsameApplication : Application() {
         }
         syncManager.schedulePeriodicSync()
         syncManager.schedulePeriodicHardDelete()
+        authManager.toString()
     }
 }

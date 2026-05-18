@@ -17,6 +17,7 @@ import com.example.progettoesame.ui.screens.ProfileScreen
 import com.example.progettoesame.ui.screens.RecipeScreen
 import com.example.progettoesame.ui.screens.SettingScreen
 import com.example.progettoesame.ui.screens.SignUpScreen
+import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
@@ -33,33 +34,27 @@ sealed interface NavigationRoute {
     @Serializable data class CategoryRecipes(val categoryId : String, val categoryName : String) : NavigationRoute
     @Serializable data class RecipeDetails(val recipeId : String) : NavigationRoute
     @Serializable data class NewRecipe(val recipeId : String? = null) : NavigationRoute
-    @Serializable data class Profile(val userId : Int) : NavigationRoute
-    @Serializable data class Settings(val userId : Int) : NavigationRoute
+    @Serializable data class Profile(val userId : String) : NavigationRoute
+    @Serializable data object Settings : NavigationRoute
     @Serializable data object ChangePassword : NavigationRoute
-    @Serializable data class EditProfile(val userId: Int) : NavigationRoute
+    @Serializable data object EditProfile : NavigationRoute
+    @Serializable data object ResetPassword : NavigationRoute
 }
 
 @Composable
 fun NavGraph(navController: NavHostController, startDestination: NavigationRoute) {
-    val isLoggedIn = false //da sistemare quando usi Auth
+    val authVM: AuthViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable<NavigationRoute.Login> {
-            LoginScreen(navController) {
-                navController.navigate(NavigationRoute.SignUp)
-            }
-        }
-        composable<NavigationRoute.SignUp> {
-            SignUpScreen(navController) {
-                navController.popBackStack()
-            }
-        }
+        composable<NavigationRoute.Login> { LoginScreen(navController, authVM) }
+        composable<NavigationRoute.SignUp> { SignUpScreen(navController, authVM) }
         composable<NavigationRoute.Home> {
             val homeVm = koinViewModel<HomeViewModel>()
-            HomeScreen(navController, homeVm) }
+            HomeScreen(navController, homeVm)
+        }
         composable<NavigationRoute.Error> {
             val initialErrorVm = koinViewModel<InitialErrorViewModel>()
             InitialErrorScreen(navController, initialErrorVm)
@@ -79,34 +74,11 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             val newRecipeVm = koinViewModel<NewRecipeViewModel>()
             NewRecipeScreen(navController, newRecipeVm, route.recipeId)
         }
-        composable<NavigationRoute.Profile> { backStackEntry ->
-            val route = backStackEntry.toRoute<NavigationRoute.Profile>()
-            if (isLoggedIn) {
-                ProfileScreen(navController, route.userId)
-            } else {
-                LaunchedEffect(Unit) {
-                    navController.navigate(NavigationRoute.Login)
-                }
-            }
-        }
-        composable<NavigationRoute.Settings> { backStackEntry ->
-            val route = backStackEntry.toRoute<NavigationRoute.Settings>()
-            SettingScreen(navController, route.userId)
-        }
-        composable<NavigationRoute.ChangePassword> {
-            ChangePasswordScreen(navController) {
-                navController.popBackStack()
-            }
-        }
-        composable<NavigationRoute.EditProfile> { backStackEntry ->
-            val route = backStackEntry.toRoute<NavigationRoute.EditProfile>()
-            EditProfileScreen(
-                userId = route.userId,
-                onSave = { newEmail, newUsername ->
-                    // Qui andrà la logica per salvare sul DB
-                    navController.popBackStack()
-                }
-            )
-        }
+        composable<NavigationRoute.Profile> { ProfileScreen(navController) }
+        //chiedi all'ila per la questione 1 VM - 2 REP
+        composable<NavigationRoute.Settings> { SettingScreen(navController, authVM) }
+        composable<NavigationRoute.ChangePassword> { ChangePasswordScreen(navController, authVM) }
+        composable<NavigationRoute.EditProfile> { EditProfileScreen(navController, authVM) }
+        composable<NavigationRoute.ResetPassword> { ChangePasswordScreen(navController, authVM, isFromReset = true) }
     }
 }

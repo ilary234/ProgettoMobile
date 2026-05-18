@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -57,4 +59,42 @@ fun createImageUriInGallery(ctx: Context) : Uri? {
     values.put(MediaStore.Images.Media.DISPLAY_NAME, name)
 
     return ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+}
+
+
+object AuthState { //per utilizzare il valore nelle varie classi bisogna scrivere AuthState.isLoggedIn.value
+    private val _isLoggedIn = mutableStateOf(false)
+    val isLoggedIn: State<Boolean> = _isLoggedIn
+
+    private val _userId = mutableStateOf<String?>(null)
+    val userId: State<String?> = _userId
+
+    private val _userEmail = mutableStateOf<String?>(null)
+    val userEmail: State<String?> = _userEmail
+
+    private val _isResetPasswordMode = mutableStateOf(false)
+    val isResetPasswordMode: State<Boolean> = _isResetPasswordMode
+
+    fun setLoggedIn(id: String, email: String, isResetMode: Boolean = false) {
+        _userId.value = id
+        _userEmail.value = email
+        _isResetPasswordMode.value = isResetMode
+        _isLoggedIn.value = true
+    }
+
+    fun enableResetModeOnly() {
+        _isResetPasswordMode.value = true
+        _isLoggedIn.value = true
+    }
+
+    fun disableResetModeOnly() {
+        _isResetPasswordMode.value = false
+    }
+
+    fun setLoggedOut() {
+        _userId.value = null
+        _userEmail.value = null
+        _isResetPasswordMode.value = false
+        _isLoggedIn.value = false
+    }
 }
