@@ -14,6 +14,7 @@ import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
+import com.example.progettoesame.data.repositories.UserRepository
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
@@ -78,13 +79,14 @@ val appModule = module {
                         get<ProjectDatabase>().UserRatedDAO(),) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
     single { AuthRepository(get()) }
+    single { UserRepository(get<ProjectDatabase>().UserDAO()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
-    viewModel { NewRecipeViewModel(get(), get(),get(), get()) }
+    viewModel { NewRecipeViewModel(get(), get(),get(), get(), get()) }
     viewModel { AuthViewModel(get()) }
 
     worker { SyncWorker(get(), get(), get()) }

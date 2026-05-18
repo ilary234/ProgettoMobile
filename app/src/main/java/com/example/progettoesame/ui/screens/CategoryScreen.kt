@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -124,6 +125,10 @@ fun CategoryScreen(navController: NavController,
 
                         val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
                         InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+
+                        Button(onClick = {navController.navigate(NavigationRoute.NewRecipe(null))}) {
+                            Text("Nuova ricetta")
+                        }
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),

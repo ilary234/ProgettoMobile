@@ -13,6 +13,8 @@ import com.example.progettoesame.data.database.Step
 import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
+import com.example.progettoesame.data.repositories.UserRepository
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,6 +64,7 @@ data class StepActions(
 
 class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                          private val categoryRepository: CategoryRepository,
+                         private val userRepository: UserRepository,
                          private val syncRepository: SyncRepository,
                          private val savedStateHandle: SavedStateHandle) : ViewModel() {
     val recipeId : String? = savedStateHandle["recipeId"]
@@ -241,11 +244,18 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                     }
                 }
 
+                val authorId = AuthState.userId.value!!
+                val author = userRepository.getUserById(authorId)
+                if (author == null) {
+                    _isRefreshing.value = false
+                    _errorMessage.update { "C'è stato un errore durante il salvataggio. Riprova" }
+                    return@launch
+                }
 
                 val recipe = when(recipeId) {
                     null -> Recipe(
                         title = _state.value.title,
-                        author = "2290a467-e9ad-4bc3-908e-812b15e1b8de", //TODO cambiare con l'id dell'utente loggato
+                        author = authorId,
                         category = _state.value.category!!.categoryId,
                         previewImageUrl = _state.value.previewImageUrl!!,
                         preparation = _state.value.preparation,
@@ -259,7 +269,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                     else -> Recipe(
                         recipeId = recipeId,
                         title = _state.value.title,
-                        author = "2290a467-e9ad-4bc3-908e-812b15e1b8de", //TODO cambiare con l'id dell'utente loggato
+                        author = authorId,
                         category = _state.value.category!!.categoryId,
                         previewImageUrl = _state.value.previewImageUrl!!,
                         preparation = _state.value.preparation,
@@ -272,6 +282,16 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                         isSynced = false)
                 }
                 recipeRepository.upsertRecipe(recipe)
+                if (recipeId == null) {
+                    userRepository.upsertUser(
+                        author.copy(
+                            averageRating = ((author.averageRating * author.recipeNumber) + recipe.averageRating) / (author.recipeNumber + 1),
+                            recipeNumber = author.recipeNumber + 1,
+                            isSynced = false,
+                            updatedAt = getFormattedTimeStamp()
+                        )
+                    )
+                }
                 _isSaved.value = true
             } catch (e: Exception) {
                 Log.e("NewRecipeViewModel", "Image upload failed", e)
