@@ -1,8 +1,12 @@
 package com.example.progettoesame.ui.utils
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.StarHalf
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
@@ -14,31 +18,51 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.progettoesame.R // pacchetto probabilmente da modificare
+import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
-fun RecipeCard(title: String, time: String, rating: Double) {
+fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, isFavorite: Boolean, onCardClick: () -> Unit, onFavoriteClick: () -> Unit) {
+    val roundedRating = (rating * 10).roundToInt() / 10.0
+    val formattedRating = String.format(Locale.US, "%.1f", roundedRating)
+
     Column(
         modifier = Modifier
             .width(160.dp)
-            .padding(8.dp)
+            .padding(2.dp) //mi hanno detto di avvicinarlo
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
+                .clickable { onCardClick() }
         ) {
-            // Placeholder per l'immagine - Sostituisci R.drawable.food_placeholder con la tua risorsa
-             /*Image(
-                painter = painterResource(id = R.drawable.food_placeholder),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )*/
+            Box(modifier = Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Immagine di $title",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(R.drawable.ic_image_error)
+                )
+
+                IconButton(
+                    onClick = { onFavoriteClick() },
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Inserisci nei preferiti",
+                        tint = if (isFavorite) Color.Red else Color.White
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -47,7 +71,8 @@ fun RecipeCard(title: String, time: String, rating: Double) {
             text = title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            maxLines = 1
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = time,
@@ -60,17 +85,24 @@ fun RecipeCard(title: String, time: String, rating: Double) {
             modifier = Modifier.padding(top = 4.dp)
         ) {
             repeat(5) { index ->
-                val active = index < rating.toInt()
+                val starIndex = index + 1
+                val icon = when {
+                    roundedRating >= starIndex -> Icons.Default.Star
+                    roundedRating >= starIndex - 0.75 -> Icons.AutoMirrored.Outlined.StarHalf
+                    else -> Icons.Outlined.StarBorder
+                }
+                val tint = if (rating >= starIndex - 0.75) Color(0xFFFFB400) else Color.LightGray
+
                 Icon(
-                    imageVector = if (active) Icons.Default.Star else Icons.Outlined.StarBorder,
+                    imageVector = icon,
                     contentDescription = null,
-                    tint = if (active) Color(0xFFFFB400) else Color.LightGray,
-                    modifier = Modifier.size(16.dp)
+                    tint = tint,
+                    modifier = Modifier.size(14.dp)
                 )
             }
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = rating.toString(),
+                text = formattedRating,
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 fontSize = 12.sp

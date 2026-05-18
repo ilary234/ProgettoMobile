@@ -31,4 +31,7 @@ interface RecipeDAO {
 
     @Query("SELECT * FROM recipes WHERE category = :categoryId and isDeleted = 0")
     suspend fun getRecipesFromCategory(categoryId: String) : List<Recipe>
+
+    @Query("SELECT * FROM recipes WHERE isDeleted = 0 ORDER BY averageRating DESC LIMIT 15")
+    suspend fun getTopRatedRecipes(): List<Recipe>
 }

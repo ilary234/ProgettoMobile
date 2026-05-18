@@ -1,12 +1,12 @@
 package com.example.progettoesame.ui.screens
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,7 +25,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.RecipeCard
+import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +36,10 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
     var isMenuOpen by remember { mutableStateOf(false) }
     val categories by homeViewModel.categories.collectAsStateWithLifecycle()
 
+    val homeState by homeViewModel.homeState.collectAsStateWithLifecycle()
+    val currentUserId = AuthState.userId.value ?: "guest_user"
+
+    var showLoginDialog by remember { mutableStateOf(false) }
     val isLoggedIn by AuthState.isLoggedIn
     val userEmail by AuthState.userEmail
 
@@ -44,6 +50,20 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
     }
 
     val isResetMode by AuthState.isResetPasswordMode
+
+    if (showLoginDialog) {
+        LoginRequiredDialog(
+            onDismiss = { showLoginDialog = false },
+            onConfirm = {
+                showLoginDialog = false
+                navController.navigate(NavigationRoute.Login)
+            }
+        )
+    }
+
+    LaunchedEffect(currentUserId) {
+        homeViewModel.fetchHomeData(currentUserId)
+    }
 
     LaunchedEffect(isResetMode) {
         if (isResetMode) {
@@ -71,30 +91,60 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                 }
             }
         ) { paddingValues ->
-            LazyColumn(
+            Box(
                 modifier = Modifier
-                    .padding(paddingValues)
                     .fillMaxSize()
             ) {
-                // SearchBar: resta nel layout ma diventa invisibile se il menu è aperto (non so se va bene fatta così)
-                item {
-                    Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
-                        SearchBar()
-                    }
-                }
+                if (homeState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                    ) {
+                        item {
+                            Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
+                                SearchBar()
+                            }
+                        }
 
-                item {
-                    SectionHeader(title = "In primo piano")
-                    LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
-                        items(3) { RecipeCard(title = "Titolo", time = "Tempo", rating = 2.0) }
-                    }
-                }
+                        items(homeState.sections) { section ->
+                            Column {
+                                SectionHeader(title = section.title)
 
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SectionHeader(title = "Primi piatti")
-                    LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
-                        items(3) { RecipeCard(title = "Titolo", time = "Tempo", rating = 2.0) }
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp
+                                    )
+                                ) {
+                                    items(section.recipes.keys.toList()) { recipe ->
+                                        val isFavorite = section.recipes[recipe] ?: false
+                                        val totalTime = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
+
+                                        RecipeCard(
+                                            imageUrl = recipe.previewImageUrl,
+                                            title = recipe.title,
+                                            rating = recipe.averageRating.toDouble(),
+                                            time = formatTime(totalTime),
+                                            isFavorite = isFavorite,
+                                            onCardClick = {
+                                                navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))
+                                            },
+                                            onFavoriteClick = {
+                                                if (AuthState.isLoggedIn.value) {
+                                                    homeViewModel.actions.onFavorite(recipe, currentUserId)
+                                                } else {
+                                                    showLoginDialog = true
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -225,17 +275,5 @@ fun SectionHeader(title: String) {
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Surface(
-            shape = CircleShape,
-            color = Color(0xFFF0F0F0),
-            modifier = Modifier.size(24.dp)
-        ) {
-            Icon(
-                Icons.Default.KeyboardArrowRight,
-                contentDescription = "Vedi tutto",
-                modifier = Modifier.padding(4.dp)
-            )
-        }
     }
 }

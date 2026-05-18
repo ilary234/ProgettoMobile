@@ -74,11 +74,11 @@ val appModule = module {
                                 get<ProjectDatabase>().UserDAO(),
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO()) }
-    single { HomeRepository(get<ProjectDatabase>().CategoryDAO()) }
+    single { HomeRepository(get<ProjectDatabase>().CategoryDAO(), get<ProjectDatabase>().RecipeDAO()) }
     single { AuthRepository(get()) }
 
     viewModel { SplashViewModel(get()) }
-    viewModel { HomeViewModel(get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
