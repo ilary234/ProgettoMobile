@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.FlowRow
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
