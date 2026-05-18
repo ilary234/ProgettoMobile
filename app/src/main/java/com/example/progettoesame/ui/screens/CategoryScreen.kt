@@ -127,10 +127,6 @@ fun CategoryScreen(navController: NavController,
                         val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
                         InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
 
-                        Button(onClick = {navController.navigate(NavigationRoute.NewRecipe(null))}) {
-                            Text("Nuova ricetta")
-                        }
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,
