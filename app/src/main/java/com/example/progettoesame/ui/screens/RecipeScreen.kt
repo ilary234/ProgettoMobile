@@ -1,8 +1,5 @@
 package com.example.progettoesame.ui.screens
 
-import android.os.Bundle
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,11 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
@@ -41,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.BulletPointText
 import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
@@ -65,7 +63,6 @@ import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RatingRow
 import com.example.progettoesame.ui.utils.shareRecipe
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,33 +71,19 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     val stepsState by recipeViewModel.stepsState.collectAsStateWithLifecycle()
     val isFavorite by recipeViewModel.isFavorite.collectAsStateWithLifecycle()
     val rating by recipeViewModel.rate.collectAsStateWithLifecycle()
+    val currentSpeakingId by recipeViewModel.currentSpeakingId.collectAsStateWithLifecycle()
+    val isFullAudioStarted by recipeViewModel.isFullAudioStarted.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
-    var isSpeaking by remember { mutableStateOf(false) }
 
     val ctx = LocalContext.current
 
-    val tts = remember { TextToSpeech(ctx) { status ->
-        }.apply {
-            setLanguage(Locale.getDefault())
-            setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {
-                    isSpeaking = true
-                }
-                override fun onDone(utteranceId: String?) {
-                    isSpeaking = false
-                }
-                override fun onError(utteranceId: String?) {
-                    isSpeaking = false
-                }
-            })
-        }
-    }
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
-        if(true/*isLoggedIn*/) { //TODO
-            recipeViewModel.getUserRecipeData(recipeId, "userId")
+        if(AuthState.isLoggedIn.value) {
+            recipeViewModel.getUserRecipeData(recipeId, AuthState.userId.value!!)
         }
+        recipeViewModel.initTts(ctx)
     }
 
     if(recipeState == null) {
@@ -120,16 +103,10 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
         )
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            tts.stop()
-            tts.shutdown()
-        }
-    }
-
     val currentData = recipeState ?: return
     val recipe = currentData.recipe
     val author = currentData.author
+
     Scaffold(
         containerColor = Color.White,
         topBar = {
@@ -170,12 +147,12 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     textDecoration = TextDecoration.Underline,
                     color = MaterialTheme.colorScheme.primary, //TODO mettere colore secondary (arancione scuro in questo caso)
                     modifier = Modifier.weight(1f)
-                        .clickable{navController.navigate(NavigationRoute.Profile("sss"/*recipe.author*/))}) //TODO avevo messo una stringa a caso solo per far andare l'app
+                        .clickable{navController.navigate(NavigationRoute.Profile(recipe.author))})
                 RatingRow(recipe.averageRating)
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Tempi:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+                Text("Tempi:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
                 BulletPointText("Preparazione: ${formatTime(recipe.preparation)}")
                 if (recipe.waiting != null) {
                     BulletPointText("Riposo: ${formatTime(recipe.waiting)}")
@@ -192,8 +169,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray)
                 }
                 IconButton(onClick = {
-                    if (false/*isLoggedIn()*/) {//TODO
-                        recipeViewModel.actions.onFavorite(recipe.recipeId, "userId")
+                    if (AuthState.isLoggedIn.value) {
+                        recipeViewModel.actions.onFavorite(recipe.recipeId, AuthState.userId.value!!)
                     } else {
                         showDialog = true
                     }
@@ -219,75 +196,51 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                IconButton(onClick = {
-                    if (isSpeaking) {
-                        tts.stop()
-                        isSpeaking = false
-                    } else {
-                        val text = recipe.steps
-                            .sortedBy { it.number }
-                            .joinToString(separator = ". ") { it.description }
-                        val params = Bundle()
-                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "recipe_id")
-                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "recipe_id")
-                    }
-                }) {
-                    Icon(
-                        imageVector = if (isSpeaking) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Stop text-to-speech Icon",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Gray
-                    )
-                }
-            }
-            recipe.steps.sortedBy { it.number }.forEach { step ->
-                val isOpen = stepsState.stepStates[step] ?: false
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(12.dp))
-                            .padding(start = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Passaggio ${step.number}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
-                        IconButton(onClick = { recipeViewModel.actions.onToggleStep(step) }) {
+                        val isSpeaking = currentSpeakingId?.startsWith("full_recipe") ?: false
+                        IconButton(onClick = { recipeViewModel.onPlayPauseButtonClick() }) {
                             Icon(
-                                imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                                contentDescription = "Arrow Icon",
+                                imageVector = if (isSpeaking) Icons.Default.Pause else Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = if (isSpeaking) "Pause audio Icon" else "Play audio Icon",
                                 modifier = Modifier.size(24.dp),
                                 tint = Color.Gray
                             )
                         }
-                    }
-                    if (isOpen) {
-                        if (step.imageUrls.isNotEmpty()) {
-                            val pagerState = rememberPagerState(
-                                pageCount = { step.imageUrls.size }
-                            )
 
-                            HorizontalPager(
-                                state = pagerState,
-                                contentPadding = PaddingValues(horizontal = 32.dp),
-                                pageSpacing = 16.dp,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { page ->
-                                PreviewCard(
-                                    step.imageUrls[page],
-                                    "Passaggio ${step.number} - Foto ${page + 1}"
+                        if (isFullAudioStarted) {
+                            IconButton(onClick = { recipeViewModel.onFullRecipeStopButtonClick() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Stop,
+                                    contentDescription = "Stop audio Icon",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = Color.Gray
                                 )
                             }
                         }
-
-                        Text(text = step.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
                     }
+                }
+
+
+                recipe.steps.sortedBy { it.number }.forEach { step ->
+                    val isOpen = stepsState.stepStates[step] ?: false
+                    val stepAudioId = "step_${step.number}"
+                    StepElem(step.number, isOpen, currentSpeakingId, stepAudioId,
+                        { recipeViewModel.onStepStopButtonClick() },
+                        { text, stepAudioId -> recipeViewModel.onStepPlayButtonClick(text, stepAudioId) },
+                        { recipeViewModel.actions.onToggleStep(step)}, step.description, step.imageUrls)
                 }
             }
 
@@ -309,8 +262,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                         IconButton(
                             modifier = Modifier.size(20.dp),
                             onClick = {
-                            if (false/*isLoggedIn()*/) {//TODO
-                                recipeViewModel.actions.onRate(recipe.recipeId, "userId", index + 1)
+                            if (AuthState.isLoggedIn.value) {
+                                recipeViewModel.actions.onRate(recipe.recipeId, AuthState.userId.value!!, index + 1)
                             } else {
                                 showDialog = true
                             }}) {
@@ -326,5 +279,72 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             }
 
         }
+    }
+}
+
+@Composable
+fun StepElem(number: Int, isOpen: Boolean,
+             currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: (String, String) -> Unit,
+             onToggleStep: () -> Unit, description: String, imageUrls: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f)
+                    .background(
+                        color = Color(0xfff7ead0),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(start = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Passaggio $number", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
+                IconButton(onClick =  onToggleStep ) {
+                    Icon(
+                        imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = "Arrow Icon",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Gray
+                    )
+                }
+            }
+            StepAudioButton(currentSpeakingId, stepAudioId, onStop, {onPlay(description, stepAudioId)})
+        }
+        if (isOpen) {
+            if (imageUrls.isNotEmpty()) {
+                val pagerState = rememberPagerState(
+                    pageCount = { imageUrls.size }
+                )
+
+                HorizontalPager(
+                    state = pagerState,
+                    contentPadding = PaddingValues(horizontal = 32.dp),
+                    pageSpacing = 16.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) { page ->
+                    PreviewCard(
+                        imageUrls[page],
+                        "Passaggio ${number} - Foto ${page + 1}"
+                    )
+                }
+            }
+
+            Text(text = description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+fun StepAudioButton(currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: () -> Unit) {
+    IconButton(onClick = { if (currentSpeakingId == stepAudioId) onStop() else onPlay() }) {
+        Icon(
+            imageVector = if (currentSpeakingId == stepAudioId) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = if (currentSpeakingId == stepAudioId) "Stop audio Icon" else "Play audio Icon",
+            modifier = Modifier.size(24.dp),
+            tint = Color.Gray
+        )
     }
 }

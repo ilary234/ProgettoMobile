@@ -1,5 +1,6 @@
 package com.example.progettoesame.ui.utils
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.progettoesame.R // pacchetto probabilmente da modificare
+import com.example.progettoesame.data.database.Recipe
+import com.example.progettoesame.ui.NavigationRoute
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -107,6 +110,48 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
                 color = Color.Gray,
                 fontSize = 12.sp
             )
+        }
+    }
+}
+
+@Composable
+fun RecipePreviewCard(onClick: () -> Unit, recipe: Recipe, isFavorite: Boolean,
+                      onLoggedFavourite: () -> Unit, onUnloggedFavourite: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(16.dp))
+            .padding(16.dp)
+            .clickable{
+                onClick()
+            },
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+
+        PreviewCard(recipe.previewImageUrl, recipe.title)
+
+        val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
+        InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {
+                if (AuthState.isLoggedIn.value) {
+                    onLoggedFavourite()
+                } else {
+                    onUnloggedFavourite()
+                }
+            }) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite Icon",
+                    modifier = Modifier.size(24.dp),
+                    tint = if (isFavorite) Color.Red else Color.Gray
+                )
+            }
         }
     }
 }

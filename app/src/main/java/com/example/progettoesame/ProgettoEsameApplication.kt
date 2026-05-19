@@ -22,6 +22,7 @@ class ProgettoEsameApplication : Application() {
             workManagerFactory()
         }
         syncManager.schedulePeriodicSync()
+        syncManager.schedulePeriodicHardDelete()
         authManager.toString()
     }
 }

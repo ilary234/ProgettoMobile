@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progettoesame.data.database.Category
 import com.example.progettoesame.data.database.Recipe
-import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.HomeRepository
+import com.example.progettoesame.data.repositories.RecipeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,8 +30,8 @@ data class HomeActions(
     val onFavorite: (Recipe, String) -> Unit
 )
 
-class HomeViewModel(private val homeRepository: HomeRepository, private val categoryRepository: CategoryRepository) : ViewModel() {
-     val categories = homeRepository.categories.map { Categories(it) }.stateIn(
+class HomeViewModel(private val homeRepository: HomeRepository, private val recipeRepository: RecipeRepository) : ViewModel() {
+    val categories = homeRepository.categories.map { Categories(it) }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
         initialValue = Categories(emptyList()))
@@ -49,7 +49,7 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
         viewModelScope.launch {
             _homeState.value = _homeState.value.copy(isLoading = true)
             try {
-                val favoritesIds = categoryRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
+                val favoritesIds = recipeRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
                 val finalSections = mutableListOf<HomeSection>()
 
                 val topRecipes = homeRepository.getTopRatedRecipes()
@@ -65,7 +65,7 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
 
                 homeRepository.categories.collect { categoriesList ->
                     categoriesList.sortedBy { it.order }.forEach { category ->
-                        val categoryRecipes = categoryRepository.getRecipesFromCategory(category.categoryId)
+                        val categoryRecipes = recipeRepository.getRecipesFromCategory(category.categoryId)
                         val limitedRecipes = categoryRecipes.take(15)
 
                         if (limitedRecipes.isNotEmpty()) {
@@ -137,7 +137,7 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
                 comparison
             }
 
-            val favoritesIds = categoryRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
+            val favoritesIds = recipeRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
 
             _searchResults.value = sortedRecipes.associateWith { favoritesIds.contains(it.recipeId) }
         }
@@ -154,9 +154,9 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val cate
                 val isFavorite = isFavoriteInHome ?: isFavoriteInSearch ?: false
 
                 if (isFavorite) {
-                    categoryRepository.deleteFavorite(recipe.recipeId, userId)
+                    recipeRepository.deleteFavorite(recipe.recipeId, userId)
                 } else {
-                    categoryRepository.setFavorite(recipe.recipeId, userId)
+                    recipeRepository.setFavorite(recipe.recipeId, userId)
                 }
 
                 val updatedSections = currentSections.map { section ->

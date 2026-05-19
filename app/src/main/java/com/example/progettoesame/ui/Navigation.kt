@@ -1,7 +1,6 @@
 package com.example.progettoesame.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +20,7 @@ import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
+import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -32,7 +32,7 @@ sealed interface NavigationRoute {
     @Serializable data object Error : NavigationRoute
     @Serializable data class CategoryRecipes(val categoryId : String, val categoryName : String) : NavigationRoute
     @Serializable data class RecipeDetails(val recipeId : String) : NavigationRoute
-    @Serializable data object NewRecipe : NavigationRoute
+    @Serializable data class NewRecipe(val recipeId : String? = null) : NavigationRoute
     @Serializable data class Profile(val userId : String) : NavigationRoute
     @Serializable data object Settings : NavigationRoute
     @Serializable data object ChangePassword : NavigationRoute
@@ -68,9 +68,12 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             val route = backStackEntry.toRoute<NavigationRoute.RecipeDetails>()
             RecipeScreen(navController, recipeVm, route.recipeId)
         }
-        composable<NavigationRoute.NewRecipe> { NewRecipeScreen(navController) }
+        composable<NavigationRoute.NewRecipe> { backStackEntry ->
+            val route = backStackEntry.toRoute<NavigationRoute.NewRecipe>()
+            val newRecipeVm = koinViewModel<NewRecipeViewModel>()
+            NewRecipeScreen(navController, newRecipeVm, route.recipeId)
+        }
         composable<NavigationRoute.Profile> { ProfileScreen(navController) }
-        //chiedi all'ila per la questione 1 VM - 2 REP
         composable<NavigationRoute.Settings> { SettingScreen(navController, authVM) }
         composable<NavigationRoute.ChangePassword> { ChangePasswordScreen(navController, authVM) }
         composable<NavigationRoute.EditProfile> { EditProfileScreen(navController, authVM) }

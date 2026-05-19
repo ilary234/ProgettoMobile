@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.progettoesame.data.AuthManager
+import com.example.progettoesame.data.HardDeleteWorker
 import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.SyncWorker
 import com.example.progettoesame.data.database.ProjectDatabase
@@ -13,10 +14,12 @@ import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
+import com.example.progettoesame.data.repositories.UserRepository
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
+import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
@@ -69,20 +72,23 @@ val appModule = module {
                               get<ProjectDatabase>().UserDAO(),
                        get<ProjectDatabase>().UserFavouriteDAO(),
                             get<ProjectDatabase>().UserRatedDAO(), get()) }
-    single { CategoryRepository(get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
+    single { CategoryRepository(get<ProjectDatabase>().CategoryDAO()) }
     single { RecipeRepository(get<ProjectDatabase>().RecipeDAO(),
                                 get<ProjectDatabase>().UserDAO(),
                         get<ProjectDatabase>().UserFavouriteDAO(),
-                        get<ProjectDatabase>().UserRatedDAO()) }
+                        get<ProjectDatabase>().UserRatedDAO(),) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO(), get<ProjectDatabase>().RecipeDAO()) }
     single { AuthRepository(get()) }
+    single { UserRepository(get<ProjectDatabase>().UserDAO()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get(), get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }
+    viewModel { NewRecipeViewModel(get(), get(),get(), get(), get()) }
     viewModel { AuthViewModel(get()) }
 
     worker { SyncWorker(get(), get(), get()) }
+    worker { HardDeleteWorker(get(), get(), get()) }
 }

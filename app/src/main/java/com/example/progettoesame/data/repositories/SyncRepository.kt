@@ -15,6 +15,9 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
 
 class SyncRepository(private val recipeDAO: RecipeDAO,
                      private val userDAO: UserDAO,
@@ -98,8 +101,8 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
         }
     }
 
-    suspend fun uploadImage(fileName: String, imageBytes: ByteArray): String? {
-        return try {
+    suspend fun uploadImage(fileName: String, imageBytes: ByteArray): String? = withContext(Dispatchers.IO){
+        return@withContext try {
             val bucket = supabase.storage.from("Ricette")
             bucket.upload(path = fileName, data = imageBytes) {
                 upsert = true
@@ -109,6 +112,17 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
             url
         } catch (e: Exception) {
             Log.e("Sync", "Errore durante l'upload", e)
+            null
+        }
+    }
+
+    suspend fun deleteImage(url: String) = withContext(Dispatchers.IO){
+        try {
+            val fileName = url.substringAfterLast("/")
+            val bucket = supabase.storage.from("Ricette")
+            bucket.delete(fileName)
+        } catch (e: Exception) {
+            Log.e("Sync", "Errore durante l'eliminazione dell'immagine", e)
             null
         }
     }
@@ -141,5 +155,24 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
         } catch (e: Exception) {
             Log.e("SyncRepository", "Error syncing data: ${e.message}")
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun hardDelete() = withContext(Dispatchers.IO) {
+        try {
+            val aDayAgo = Clock.System.now().minus(1.days).toString()
+            supabase.from("recipes").delete {
+                filter {
+                    eq("is_deleted", true)
+                    lt("updated_at", aDayAgo)
+                }
+            }
+
+            recipeDAO.hardDeleteRecipes()
+
+        } catch (e: Exception) {
+            Log.e("SyncRepository", "Error hard deleting data: ${e.message}")
+        }
+
     }
 }

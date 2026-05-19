@@ -29,6 +29,7 @@ import com.example.progettoesame.ui.utils.InfoPreview
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RecipeCard
+import com.example.progettoesame.ui.utils.RecipePreviewCard
 import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 
@@ -123,43 +124,9 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                     val recipe = entry.key
                                     val isFavorite = entry.value
 
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 24.dp, vertical = 8.dp)
-                                            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(16.dp))
-                                            .padding(16.dp)
-                                            .clickable {
-                                                navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))
-                                            },
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        PreviewCard(recipe.previewImageUrl, recipe.title)
-
-                                        val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
-                                        InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
-
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.End,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            IconButton(onClick = {
-                                                if (AuthState.isLoggedIn.value) {
-                                                    homeViewModel.actions.onFavorite(recipe, currentUserId)
-                                                } else {
-                                                    showLoginDialog = true
-                                                }
-                                            }) {
-                                                Icon(
-                                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                                    contentDescription = "Favorite Icon",
-                                                    modifier = Modifier.size(24.dp),
-                                                    tint = if (isFavorite) Color.Red else Color.Gray
-                                                )
-                                            }
-                                        }
-                                    }
+                                    RecipePreviewCard({navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))},
+                                        recipe,isFavorite,{homeViewModel.actions.onFavorite(recipe, currentUserId)},
+                                        {showLoginDialog = true})
                                 }
                             }
                         } else {

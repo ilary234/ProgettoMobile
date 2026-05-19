@@ -23,6 +23,9 @@ interface UserDAO {
     @Query("SELECT username FROM users WHERE userId = :id")
     suspend fun getAuthor(id: String): String
 
+    @Query("SELECT * FROM users WHERE userId = :id")
+    suspend fun getUserById(id: String): User?
+
     @Upsert
     suspend fun upsert(user: User)
 

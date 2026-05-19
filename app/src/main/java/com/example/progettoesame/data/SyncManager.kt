@@ -57,4 +57,21 @@ class SyncManager(private val context: Context) {
             request
         )
     }
+
+    fun schedulePeriodicHardDelete() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val request = PeriodicWorkRequestBuilder<HardDeleteWorker>(7, TimeUnit.DAYS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "periodic_hard_delete",
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
 }

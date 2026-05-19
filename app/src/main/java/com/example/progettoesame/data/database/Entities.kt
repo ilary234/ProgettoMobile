@@ -1,10 +1,13 @@
 package com.example.progettoesame.data.database
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.util.UUID
 
 @Serializable
 @Entity(tableName = "categories")
@@ -21,7 +24,7 @@ data class Category (
 data class User (
     @PrimaryKey
     @SerialName("user_id")
-    val userId: String,
+    val userId: String = UUID.randomUUID().toString(),
     @SerialName("username") val username : String,
     @SerialName("email") val email : String,
     @SerialName("recipe_number") val recipeNumber : Int = 0,
@@ -54,7 +57,7 @@ data class Step (
 @Entity(tableName = "recipes")
 data class Recipe (
     @PrimaryKey
-    @SerialName("recipe_id") val recipeId : String,
+    @SerialName("recipe_id") val recipeId : String = UUID.randomUUID().toString(),
     @SerialName("title") val title : String,
     @SerialName("author_id") val author : String,
     @SerialName("category_id") val category : String,
@@ -71,7 +74,16 @@ data class Recipe (
 )
 
 @Serializable
-@Entity(tableName = "user_favourite_recipes", primaryKeys = ["userId", "recipeId"])
+@Entity(tableName = "user_favourite_recipes", primaryKeys = ["userId", "recipeId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Recipe::class,
+            parentColumns = ["recipeId"],
+            childColumns = ["recipeId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["recipeId"])])
 data class UserFavourite (
     @SerialName("user_id") val userId: String,
     @SerialName("recipe_id") val recipeId : String,
@@ -81,7 +93,16 @@ data class UserFavourite (
 )
 
 @Serializable
-@Entity(tableName = "user_rated_recipes", primaryKeys = ["userId", "recipeId"])
+@Entity(tableName = "user_rated_recipes", primaryKeys = ["userId", "recipeId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = Recipe::class,
+            parentColumns = ["recipeId"],
+            childColumns = ["recipeId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["recipeId"])])
 data class UserRated (
     @SerialName("user_id") val userId: String,
     @SerialName("recipe_id") val recipeId : String,

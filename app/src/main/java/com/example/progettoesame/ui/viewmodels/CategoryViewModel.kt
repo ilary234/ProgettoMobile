@@ -5,42 +5,46 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.database.Recipe
-import com.example.progettoesame.data.repositories.CategoryRepository
+import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class RecipesState(val recipes: Map<Recipe, Boolean>)
+data class FavoriteState(val recipes: Map<Recipe, Boolean>)
 data class RecipesActions (
     val onFavorite: (Recipe, String) -> Unit
 )
 
-class CategoryViewModel(private val repository: CategoryRepository,
+class CategoryViewModel(private val repository: RecipeRepository,
                         private val syncManager: SyncManager,
                         private val syncRepository: SyncRepository) : ViewModel() {
-    private val _recipesState = MutableStateFlow(RecipesState(emptyMap()))
-    val recipesState = _recipesState.asStateFlow()
+    private val _favoriteState = MutableStateFlow(FavoriteState(emptyMap()))
+    val favoriteState = _favoriteState.asStateFlow()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    private suspend fun loadData(userId: String, categoryId: String) {
+    private suspend fun loadData(userId: String?, categoryId: String) {
         val recipes = repository.getRecipesFromCategory(categoryId)
-        val favoritesIds = repository.getUserFavorites(userId).map { it.recipeId }.toSet()
-        _recipesState.value = RecipesState(recipes.associateWith { recipe ->
-            favoritesIds.contains(recipe.recipeId)
-        })
+        if (userId != null) {
+            val favoritesIds = repository.getUserFavorites(userId).map { it.recipeId }.toSet()
+            _favoriteState.value = FavoriteState(recipes.associateWith { recipe ->
+                favoritesIds.contains(recipe.recipeId)
+            })
+        } else {
+            _favoriteState.value = FavoriteState(recipes.associateWith { false })
+        }
     }
 
-    fun fetchRecipes(userId: String, categoryId: String) {
+    fun fetchRecipes(userId: String?, categoryId: String) {
         viewModelScope.launch {
             loadData(userId, categoryId)
         }
     }
 
-    fun syncAndFetchRecipes(userId: String, categoryId: String) {
+    fun syncAndFetchRecipes(userId: String?, categoryId: String) {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
@@ -61,7 +65,7 @@ class CategoryViewModel(private val repository: CategoryRepository,
 
     val actions = RecipesActions(
         onFavorite = { recipe, userId -> viewModelScope.launch {
-            val currentMap = _recipesState.value.recipes
+            val currentMap = _favoriteState.value.recipes
             val isFavorite = currentMap[recipe] ?: false
             if (isFavorite) {
                 repository.deleteFavorite(recipe.recipeId, userId)
@@ -70,7 +74,7 @@ class CategoryViewModel(private val repository: CategoryRepository,
             }
             val updatedMap = currentMap.toMutableMap()
             updatedMap[recipe] = !isFavorite
-            _recipesState.value = _recipesState.value.copy(recipes = updatedMap)
+            _favoriteState.value = _favoriteState.value.copy(recipes = updatedMap)
         } }
     )
 
