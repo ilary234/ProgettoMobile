@@ -192,7 +192,6 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
             inputStream?.close()
 
             if (bytes != null) {
-                _errorMessage.update { "byte calcolati correttamente" }
                 val fileName = "${UUID.randomUUID()}.jpg"
                 syncRepository.uploadImage(fileName, bytes)
             } else null

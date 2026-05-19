@@ -25,9 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthState
-import com.example.progettoesame.ui.utils.InfoPreview
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
-import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.RecipeCard
 import com.example.progettoesame.ui.utils.RecipePreviewCard
 import com.example.progettoesame.ui.utils.formatTime
@@ -96,6 +94,28 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                             }
                         )
                         SearchBar(value = searchQuery, onValueChange = { homeViewModel.onSearchQueryChange(it, currentUserId) })
+                    }
+                }
+            },
+            floatingActionButton = {
+                if (!isMenuOpen) {
+                    FloatingActionButton(
+                        onClick = {
+                            if (isLoggedIn) {
+                                navController.navigate(NavigationRoute.NewRecipe())
+                            } else {
+                                showLoginDialog = true
+                            }
+                        },
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        containerColor = Color(0xFFF7EAD0), //poi da sistemare
+                        contentColor = Color.Black, //poi da sistemare
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Crea Nuova Ricetta"
+                        )
                     }
                 }
             }
