@@ -93,7 +93,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                 }
                             }
                         )
-                        SearchBar(value = searchQuery, onValueChange = { homeViewModel.onSearchQueryChange(it, currentUserId) })
+                        SearchBar(value = searchQuery, onValueChange = { homeViewModel.onSearchQueryChange(it) })
                     }
                 }
             },
@@ -130,7 +130,8 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                     LazyColumn(
                         modifier = Modifier
                             .padding(paddingValues)
-                            .fillMaxSize()
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
                         if (searchQuery.isNotBlank()) {
                             if (searchResults.isEmpty()) {

@@ -6,11 +6,17 @@ import com.example.progettoesame.data.database.Category
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.repositories.HomeRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 data class Categories(val categories: List<Category>)
@@ -31,10 +37,12 @@ data class HomeActions(
 )
 
 class HomeViewModel(private val homeRepository: HomeRepository, private val recipeRepository: RecipeRepository) : ViewModel() {
+
     val categories = homeRepository.categories.map { Categories(it) }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = Categories(emptyList()))
+        initialValue = Categories(emptyList())
+    )
 
     private val _homeState = MutableStateFlow(HomeState())
     val homeState = _homeState.asStateFlow()
@@ -42,8 +50,61 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val reci
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _searchResults = MutableStateFlow<Map<Recipe, Boolean>>(emptyMap())
-    val searchResults = _searchResults.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    val searchResults = _searchQuery
+        .debounce(200L)
+        .flatMapLatest { query ->
+            val cleanedQuery = query.trim().lowercase()
+
+            if (cleanedQuery.length < 3) {
+                flowOf(emptyMap())
+            } else {
+                homeRepository.searchRecipesByFullQuery(cleanedQuery).map { recipesList ->
+
+                    val searchWords = cleanedQuery.split("\\s+".toRegex())
+
+                    val sortedRecipes = recipesList.sortedWith { r1, r2 ->
+                        val t1 = r1.title.lowercase().trim()
+                        val t2 = r2.title.lowercase().trim()
+
+                        var score1 = 0
+                        var score2 = 0
+
+                        if (t1 == cleanedQuery) score1 += 100000
+                        if (t2 == cleanedQuery) score2 += 100000
+
+                        if (t1.startsWith(cleanedQuery)) score1 += 50000
+                        if (t2.startsWith(cleanedQuery)) score2 += 50000
+
+                        if (t1.contains(cleanedQuery)) score1 += 20000
+                        if (t2.contains(cleanedQuery)) score2 += 20000
+
+                        val wordsMatch1 = searchWords.count { t1.contains(it) }
+                        val wordsMatch2 = searchWords.count { t2.contains(it) }
+                        score1 += wordsMatch1 * 5000
+                        score2 += wordsMatch2 * 5000
+
+                        for (word in searchWords) {
+                            val regex = "\\b${Regex.escape(word)}\\b".toRegex()
+                            if (t1.contains(regex)) score1 += 1000
+                            if (t2.contains(regex)) score2 += 1000
+                        }
+
+                        score2.compareTo(score1)
+                    }
+
+                    val currentHomeState = _homeState.value
+                    sortedRecipes.associateWith { recipe ->
+                        currentHomeState.sections.flatMap { it.recipes.entries }
+                            .firstOrNull { it.key.recipeId == recipe.recipeId }?.value ?: false
+                    }
+                }
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyMap()
+        )
 
     fun fetchHomeData(userId: String) {
         viewModelScope.launch {
@@ -63,23 +124,22 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val reci
                     )
                 }
 
-                homeRepository.categories.collect { categoriesList ->
-                    categoriesList.sortedBy { it.order }.forEach { category ->
-                        val categoryRecipes = recipeRepository.getRecipesFromCategory(category.categoryId)
-                        val limitedRecipes = categoryRecipes.take(15)
+                val categoriesList = homeRepository.categories.first()
+                categoriesList.sortedBy { it.order }.forEach { category ->
+                    val categoryRecipes = recipeRepository.getRecipesFromCategory(category.categoryId)
+                    val limitedRecipes = categoryRecipes.take(15)
 
-                        if (limitedRecipes.isNotEmpty()) {
-                            finalSections.add(
-                                HomeSection(
-                                    title = category.name,
-                                    categoryId = category.categoryId,
-                                    recipes = limitedRecipes.associateWith { favoritesIds.contains(it.recipeId) }
-                                )
+                    if (limitedRecipes.isNotEmpty()) {
+                        finalSections.add(
+                            HomeSection(
+                                title = category.name,
+                                categoryId = category.categoryId,
+                                recipes = limitedRecipes.associateWith { favoritesIds.contains(it.recipeId) }
                             )
-                        }
+                        )
                     }
-                    _homeState.value = HomeState(sections = finalSections, isLoading = false)
                 }
+                _homeState.value = HomeState(sections = finalSections, isLoading = false)
 
             } catch (e: Exception) {
                 _homeState.value = _homeState.value.copy(isLoading = false)
@@ -87,60 +147,8 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val reci
         }
     }
 
-    fun onSearchQueryChange(newQuery: String, userId: String) {
+    fun onSearchQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
-
-        if (newQuery.isBlank()) {
-            _searchResults.value = emptyMap()
-            return
-        }
-
-        viewModelScope.launch {
-            val searchWords = newQuery.lowercase()
-                .split("\\s+".toRegex())
-                .filter { it.length >= 4 }
-
-            if (searchWords.isEmpty()) {
-                _searchResults.value = emptyMap()
-                return@launch
-            }
-
-            val wordToRecipesMap = mutableMapOf<String, List<Recipe>>()
-
-            for (word in searchWords) {
-                val recipesForWord = homeRepository.searchRecipesByWord(word)
-                wordToRecipesMap[word] = recipesForWord
-            }
-
-            val sortedSearchWords = searchWords.sortedBy { word ->
-                wordToRecipesMap[word]?.size ?: 0
-            }
-
-            val allMatchingRecipes = wordToRecipesMap.values.flatten().toSet()
-
-            val sortedRecipes = allMatchingRecipes.sortedWith { r1, r2 ->
-                val t1 = r1.title.lowercase()
-                val t2 = r2.title.lowercase()
-
-                var comparison = 0
-                for (word in sortedSearchWords) {
-                    val hasW1 = t1.contains(word)
-                    val hasW2 = t2.contains(word)
-                    if (hasW1 && !hasW2) {
-                        comparison = -1
-                        break
-                    } else if (!hasW1 && hasW2) {
-                        comparison = 1
-                        break
-                    }
-                }
-                comparison
-            }
-
-            val favoritesIds = recipeRepository.getUserFavorites(userId).map { it.recipeId }.toSet()
-
-            _searchResults.value = sortedRecipes.associateWith { favoritesIds.contains(it.recipeId) }
-        }
     }
 
     val actions = HomeActions(
@@ -148,9 +156,10 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val reci
             viewModelScope.launch {
                 val currentSections = _homeState.value.sections
 
+                val isFavoriteInSearch = searchResults.value[recipe]
                 val isFavoriteInHome = currentSections.flatMap { it.recipes.entries }
                     .firstOrNull { it.key.recipeId == recipe.recipeId }?.value
-                val isFavoriteInSearch = _searchResults.value[recipe]
+
                 val isFavorite = isFavoriteInHome ?: isFavoriteInSearch ?: false
 
                 if (isFavorite) {
@@ -169,12 +178,6 @@ class HomeViewModel(private val homeRepository: HomeRepository, private val reci
                     }
                 }
                 _homeState.value = _homeState.value.copy(sections = updatedSections)
-
-                if (_searchResults.value.containsKey(recipe)) {
-                    val newSearchMap = _searchResults.value.toMutableMap()
-                    newSearchMap[recipe] = !isFavorite
-                    _searchResults.value = newSearchMap
-                }
             }
         }
     )
