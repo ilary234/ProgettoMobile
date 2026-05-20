@@ -174,7 +174,6 @@ class AuthRepository(private val supabase: SupabaseClient, private val userDAO: 
             if (localUser != null) {
                 userDAO.upsert(localUser.copy(
                     username = newUsername,
-                    isSynced = true,
                     updatedAt = getFormattedTimeStamp()
                 ))
             }
