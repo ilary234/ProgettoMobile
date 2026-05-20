@@ -10,6 +10,19 @@ import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 class UserRepository(private val userDAO: UserDAO, private val recipeDAO: RecipeDAO, private val userRatedDAO: UserRatedDAO) {
     suspend fun getUserById(userId: String): User? = userDAO.getUserById(userId)
     suspend fun upsertUser(user: User) = userDAO.upsert(user)
+    suspend fun updateProfileImage(userId: String, imageUrl: String?): User {
+        val currentUser = userDAO.getUserById(userId)!!
+
+        val updatedUser = currentUser.copy(
+            profileImageUrl = imageUrl,
+            isSynced = false,
+            updatedAt = getFormattedTimeStamp()
+        )
+
+        userDAO.upsert(updatedUser)
+        return updatedUser
+    }
+
     //funzione per aggiornare l'average_rating dello user (da capire se è da togliere)
     suspend fun updateUserAverageRating(userId: String): User? {
         val currentUser = userDAO.getUserById(userId) ?: return null

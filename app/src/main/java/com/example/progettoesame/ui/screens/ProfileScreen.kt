@@ -1,5 +1,11 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.progettoesame.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.compose.foundation.background
@@ -33,6 +39,7 @@ import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.ui.NavigationRoute
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
+import com.example.progettoesame.ui.utils.createImageUriInGallery
 import com.example.progettoesame.ui.utils.formatTime
 import com.example.progettoesame.ui.utils.shareRecipe
 import com.example.progettoesame.ui.viewmodels.ProfileViewModel
@@ -58,12 +65,64 @@ fun ProfileScreen(
 
     var showLoginDialog by remember { mutableStateOf(false) }
 
+    val ctx = LocalContext.current
+    var showImagePickerDialog by remember { mutableStateOf(false) }
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            profileViewModel.updateProfileImage(userId, uri.toString())
+        }
+    }
+
+    val takePhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { pictureTaken ->
+        if (pictureTaken) {
+            cameraUri?.let { uri ->
+                profileViewModel.updateProfileImage(userId, uri.toString())
+            }
+        }
+    }
+
     if (showLoginDialog) {
         LoginRequiredDialog(
             onDismiss = { showLoginDialog = false },
             onConfirm = {
                 showLoginDialog = false
                 navController.navigate(NavigationRoute.Login)
+            }
+        )
+    }
+
+    if (showImagePickerDialog) {
+        AlertDialog(
+            onDismissRequest = { showImagePickerDialog = false },
+            title = { Text("Foto Profilo") },
+            text = { Text("Scegli come inserire o cambiare la tua foto profilo:") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pickMediaLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                        showImagePickerDialog = false
+                    }
+                ) {
+                    Text("Galleria")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        val uri = createImageUriInGallery(ctx)
+                        if (uri != null) {
+                            cameraUri = uri
+                            takePhotoLauncher.launch(uri)
+                        }
+                        showImagePickerDialog = false
+                    }
+                ) {
+                    Text("Fotocamera")
+                }
             }
         )
     }
@@ -125,18 +184,56 @@ fun ProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
-                            modifier = Modifier
-                                .size(96.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFF7EAD0)),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier.size(96.dp),
+                            contentAlignment = Alignment.BottomEnd
                         ) {
-                            Text(
-                                text = username.take(1).uppercase(Locale.ROOT),
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFF7EAD0))
+                                    .clickable(enabled = isOwnProfile) {
+                                        showImagePickerDialog = true
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (user?.profileImageUrl != null) {
+                                    AsyncImage(
+                                        model = user?.profileImageUrl,
+                                        contentDescription = "Foto profilo",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop,
+                                        error = painterResource(R.drawable.ic_image_error)
+                                    )
+                                } else {
+                                    Text(
+                                        text = username.take(1).uppercase(Locale.ROOT),
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+                            }
+
+                            if (isOwnProfile && user?.profileImageUrl != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .offset(x = 2.dp, y = 2.dp)
+                                        .background(Color.Red, shape = CircleShape)
+                                        .clickable {
+                                            profileViewModel.updateProfileImage(userId, null)
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Elimina foto profilo",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(32.dp))

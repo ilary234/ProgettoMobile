@@ -30,6 +30,7 @@ data class User (
     @SerialName("recipe_number") val recipeNumber : Int = 0,
     @SerialName("average_rating") val averageRating : Float = 0.0f,
     @SerialName("updated_at") val updatedAt : String,
+    @SerialName("profile_image_url") val profileImageUrl: String?,
     @Transient val isSynced: Boolean = false
 )
 

@@ -51,7 +51,11 @@ class ProfileViewModel(
 
             val rawRecipes = profileRepository.getRecipesByAuthor(profileUserId)
             _userRecipes.value = rawRecipes.associateWith { recipe ->
-                recipeRepository.isFavorite(recipe.recipeId, currentLoggedUserId!!)
+                if (currentLoggedUserId != null) {
+                    recipeRepository.isFavorite(recipe.recipeId, currentLoggedUserId)
+                } else {
+                    false
+                }
             }
 
             if (owned) {
@@ -63,6 +67,13 @@ class ProfileViewModel(
             }
 
             _isLoading.value = false
+        }
+    }
+
+    fun updateProfileImage(userId: String, imageUrl: String?) {
+        viewModelScope.launch {
+            val updatedUser = userRepository.updateProfileImage(userId, imageUrl)
+            _user.value = updatedUser
         }
     }
 
