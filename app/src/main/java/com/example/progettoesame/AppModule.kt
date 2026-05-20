@@ -11,6 +11,7 @@ import com.example.progettoesame.data.database.ProjectDatabase
 import com.example.progettoesame.data.repositories.AuthRepository
 import com.example.progettoesame.data.repositories.CategoryRepository
 import com.example.progettoesame.data.repositories.HomeRepository
+import com.example.progettoesame.data.repositories.ProfileRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
@@ -20,6 +21,7 @@ import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
+import com.example.progettoesame.ui.viewmodels.ProfileViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
@@ -78,11 +80,13 @@ val appModule = module {
                         get<ProjectDatabase>().UserFavouriteDAO(),
                         get<ProjectDatabase>().UserRatedDAO(),) }
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO(), get<ProjectDatabase>().RecipeDAO()) }
-    single { AuthRepository(get()) }
-    single { UserRepository(get<ProjectDatabase>().UserDAO()) }
+    single { ProfileRepository( get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
+    single { AuthRepository(get(), get<ProjectDatabase>().UserDAO()) }
+    single { UserRepository(get<ProjectDatabase>().UserDAO(), get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserRatedDAO()) }
 
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get()) }

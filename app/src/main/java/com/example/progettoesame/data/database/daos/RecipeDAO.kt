@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.example.progettoesame.data.database.Recipe
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecipeDAO {
@@ -38,6 +39,9 @@ interface RecipeDAO {
     @Query("SELECT * FROM recipes WHERE isDeleted = 0 ORDER BY averageRating DESC LIMIT 15")
     suspend fun getTopRatedRecipes(): List<Recipe>
 
-    @Query("SELECT * FROM recipes WHERE title LIKE '%' || :word || '%' AND isDeleted = 0")
-    suspend fun searchRecipesByWord(word: String): List<Recipe>
+    @Query("SELECT * FROM recipes WHERE title LIKE '%' || :query || '%' AND isDeleted = 0")
+    fun searchRecipesByFullQuery(query: String): Flow<List<Recipe>>
+
+    @Query("SELECT * FROM recipes WHERE author = :userId AND isDeleted = 0")
+    suspend fun getRecipesByAuthor(userId: String): List<Recipe>
 }

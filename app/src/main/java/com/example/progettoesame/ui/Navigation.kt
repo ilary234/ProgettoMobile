@@ -21,6 +21,7 @@ import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 import com.example.progettoesame.ui.viewmodels.HomeViewModel
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
+import com.example.progettoesame.ui.viewmodels.ProfileViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
 import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
@@ -73,7 +74,11 @@ fun NavGraph(navController: NavHostController, startDestination: NavigationRoute
             val newRecipeVm = koinViewModel<NewRecipeViewModel>()
             NewRecipeScreen(navController, newRecipeVm, route.recipeId)
         }
-        composable<NavigationRoute.Profile> { ProfileScreen(navController) }
+        composable<NavigationRoute.Profile> { backStackEntry ->
+            val route = backStackEntry.toRoute<NavigationRoute.Profile>()
+            val profileVm = koinViewModel<ProfileViewModel>()
+            ProfileScreen(navController, profileVm, route.userId)
+        }
         composable<NavigationRoute.Settings> { SettingScreen(navController, authVM) }
         composable<NavigationRoute.ChangePassword> { ChangePasswordScreen(navController, authVM) }
         composable<NavigationRoute.EditProfile> { EditProfileScreen(navController, authVM) }

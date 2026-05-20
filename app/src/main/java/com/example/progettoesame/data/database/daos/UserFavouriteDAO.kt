@@ -26,6 +26,9 @@ interface UserFavouriteDAO {
     @Query("SELECT EXISTS (SELECT 1 FROM user_favourite_recipes WHERE userId = :userId AND recipeId = :recipeId AND isDeleted = 0)")
     suspend fun isFavorite(recipeId: String, userId: String): Boolean
 
+    @Query("UPDATE user_favourite_recipes SET isDeleted = 1, isSynced = 0, updatedAt = :timestamp WHERE recipeId = :recipeId")
+    suspend fun softDeleteFavoritesByRecipe(recipeId: String, timestamp: String)
+
     @Upsert
     suspend fun upsert(userFavourite: UserFavourite)
 

@@ -24,6 +24,13 @@ interface UserRatedDAO {
 
     @Query("SELECT COUNT(*) FROM user_rated_recipes WHERE recipeId = :recipeId AND isDeleted = 0")
     suspend fun getNumberOfRatings(recipeId: String): Int
+
+    @Query("SELECT COUNT(*) FROM user_rated_recipes WHERE recipeId = :recipeId AND rating > 0 AND isDeleted = 0")
+    suspend fun countValidRatingsForRecipe(recipeId: String): Int
+
+    @Query("SELECT SUM(rating) FROM user_rated_recipes WHERE recipeId = :recipeId AND isDeleted = 0 AND rating > 0")
+    suspend fun getSumOfRatingsForRecipe(recipeId: String): Int?
+
     @Upsert
     suspend fun upsert(userRated : UserRated)
 
