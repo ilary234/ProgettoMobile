@@ -95,6 +95,10 @@ object AuthState { //per utilizzare il valore nelle varie classi bisogna scriver
         _isResetPasswordMode.value = false
     }
 
+    fun updateUsername(newUsername: String) {
+        _username.value = newUsername
+    }
+
     fun setLoggedOut() {
         _userId.value = null
         _userEmail.value = null

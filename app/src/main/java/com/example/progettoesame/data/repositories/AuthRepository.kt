@@ -1,6 +1,9 @@
 package com.example.progettoesame.data.repositories
 
+import com.example.progettoesame.data.database.daos.UserDAO
+import com.example.progettoesame.data.database.User
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -10,7 +13,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-class AuthRepository(private val supabase: SupabaseClient) {
+class AuthRepository(private val supabase: SupabaseClient, private val userDAO: UserDAO) {
     suspend fun getUsername(): String {
         val userId = AuthState.userId.value ?: return ""
         return try {
@@ -163,6 +166,17 @@ class AuthRepository(private val supabase: SupabaseClient) {
 
             supabase.from("users").update({ set("username", newUsername) }) {
                 filter { eq("user_id", currentUserId) }
+            }
+
+            AuthState.updateUsername(newUsername)
+
+            val localUser = userDAO.getUserById(currentUserId)
+            if (localUser != null) {
+                userDAO.upsert(localUser.copy(
+                    username = newUsername,
+                    isSynced = true,
+                    updatedAt = getFormattedTimeStamp()
+                ))
             }
         }
 
