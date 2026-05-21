@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.progettoesame.data.repositories.ThemeRepository
 import com.example.progettoesame.ui.NavGraph
 import com.example.progettoesame.ui.theme.ProgettoEsameTheme
+import com.example.progettoesame.ui.utils.AppPastelColor
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.Theme
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
@@ -38,12 +39,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinContext {
                 val themeState by themeRepository.theme.collectAsStateWithLifecycle(initialValue = Theme.Light)
+                val pastelColorState by themeRepository.pastelColor.collectAsStateWithLifecycle(initialValue = AppPastelColor.CREMA)
 
                 val darkTheme = when (themeState) {
                     Theme.Light -> false
                     Theme.Dark -> true
                 }
-                ProgettoEsameTheme(darkTheme) {
+                ProgettoEsameTheme(darkTheme, pastelColorState) {
                     val navController = rememberNavController()
                     val startDestination by splashViewModel.startDestination.collectAsStateWithLifecycle()
                     startDestination?.let { destination ->

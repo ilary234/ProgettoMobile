@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progettoesame.data.repositories.AuthRepository
 import com.example.progettoesame.data.repositories.ThemeRepository
+import com.example.progettoesame.ui.utils.AppPastelColor
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.Theme
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,12 +14,12 @@ import kotlinx.coroutines.launch
 
 data class ThemeState(
     val theme: Theme,
-    val dynamicColor: Boolean
+    val pastelColor: AppPastelColor
 )
 
 data class ThemeActions(
     val setTheme: (Theme) -> Unit,
-    val setDynamicColor: (Boolean) -> Unit
+    val setPastelColor: (AppPastelColor) -> Unit
 )
 
 class SettingViewModel(private val authRepository: AuthRepository, private val themeRepository: ThemeRepository) : ViewModel() {
@@ -37,20 +38,20 @@ class SettingViewModel(private val authRepository: AuthRepository, private val t
 
     val state = combine(
         themeRepository.theme,
-        themeRepository.dynamicColor
-    ) { theme, dynamicColor -> ThemeState(theme, dynamicColor) }
+        themeRepository.pastelColor
+    ) { theme, pastelColor -> ThemeState(theme, pastelColor) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = ThemeState(Theme.Light, false)
+            initialValue = ThemeState(Theme.Light, AppPastelColor.CREMA)
         )
 
     val actions = ThemeActions(
         setTheme = { theme ->
             viewModelScope.launch { themeRepository.setTheme(theme)  }
         },
-        setDynamicColor = { enabled ->
-            viewModelScope.launch { themeRepository.setDynamicColor(enabled) }
+        setPastelColor = { color ->
+            viewModelScope.launch { themeRepository.setPastelColor(color) }
         }
     )
 }
