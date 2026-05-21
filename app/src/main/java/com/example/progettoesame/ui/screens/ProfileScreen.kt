@@ -37,6 +37,7 @@ import coil.compose.AsyncImage
 import com.example.progettoesame.R
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.createImageUriInGallery
@@ -68,6 +69,13 @@ fun ProfileScreen(
     val ctx = LocalContext.current
     var showImagePickerDialog by remember { mutableStateOf(false) }
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val isDark = AppTheme.isDark
+    val currentPastel = AppTheme.pastelColor
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
 
     val pickMediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -134,34 +142,36 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Profilo", fontWeight = FontWeight.SemiBold, fontSize = 20.sp) },
+                title = { Text(text = "Profilo", color = appTextColor, fontWeight = FontWeight.SemiBold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Indietro", tint = appTextColor)
                     }
                 },
                 actions = {
                     if(isOwnProfile) {
                         IconButton(onClick = { navController.navigate(NavigationRoute.Settings) }) {
-                            Icon(Icons.Default.Settings, contentDescription = "Impostazioni")
+                            Icon(Icons.Default.Settings, contentDescription = "Impostazioni", tint = appTextColor)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = appBackgroundColor
+                )
             )
         },
-        containerColor = Color.White
+        containerColor = appBackgroundColor
     ) { paddingValues ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFFF7EAD0))
+                CircularProgressIndicator(color = appTextColor)
             }
         } else {
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
+                    .background(appBackgroundColor)
                     .fillMaxSize()
-                    .background(Color.White)
             ) {
                 Column(
                     modifier = Modifier
@@ -191,7 +201,7 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(96.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFF7EAD0))
+                                    .background(containerSectionColor)
                                     .clickable(enabled = isOwnProfile) {
                                         showImagePickerDialog = true
                                     },
@@ -210,7 +220,7 @@ fun ProfileScreen(
                                         text = username.take(1).uppercase(Locale.ROOT),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        color = appTextColor
                                     )
                                 }
                             }
@@ -220,7 +230,7 @@ fun ProfileScreen(
                                     modifier = Modifier
                                         .size(28.dp)
                                         .offset(x = 2.dp, y = 2.dp)
-                                        .background(Color.Red, shape = CircleShape)
+                                        .background(MaterialTheme.colorScheme.error, shape = CircleShape)
                                         .clickable {
                                             profileViewModel.updateProfileImage(userId, null)
                                         },
@@ -229,7 +239,7 @@ fun ProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Elimina foto profilo",
-                                        tint = Color.White,
+                                        tint = MaterialTheme.colorScheme.onError,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -243,9 +253,10 @@ fun ProfileScreen(
                                 Text(
                                     text = (user?.recipeNumber ?: 0).toString(),
                                     fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = appTextColor
                                 )
-                                Text("Ricette", color = Color.Gray, fontSize = 14.sp)
+                                Text("Ricette", color = appTextColor.copy(alpha = 0.6f), fontSize = 14.sp)
                             }
 
                             Spacer(modifier = Modifier.width(24.dp))
@@ -263,11 +274,12 @@ fun ProfileScreen(
                                     Text(
                                         text = formattedRating,
                                         fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        color = appTextColor
                                     )
                                     Icon(Icons.Default.Star, null, tint = Color(0xFFFFB400), modifier = Modifier.size(18.dp))
                                 }
-                                Text("Valutazione", color = Color.Gray, fontSize = 14.sp)
+                                Text("Valutazione", color = appTextColor.copy(alpha = 0.6f), fontSize = 14.sp)
                             }
                         }
                     }
@@ -276,16 +288,21 @@ fun ProfileScreen(
                         text = username,
                         modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 24.dp),
                         fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = appTextColor
                     )
 
                     if (isOwnProfile) {
+                        val activeTabBg = if (isDark) Color.Black else Color.White
+                        val activeTabTxt = if (isDark) Color.White else Color.Black
+                        val inactiveTabTxt = appTextColor.copy(alpha = 0.6f)
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color(0xFFF5F5F5))
+                                .background(containerSectionColor)
                                 .padding(4.dp)
                         ) {
                             Box(
@@ -293,14 +310,14 @@ fun ProfileScreen(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(if (selectedTab == 0) Color.White else Color.Transparent)
+                                    .background(if (selectedTab == 0) activeTabBg else Color.Transparent)
                                     .clickable { selectedTab = 0 },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     "Le mie ricette",
                                     fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == 0) Color.Black else Color.Gray,
+                                    color = if (selectedTab == 0) activeTabTxt else inactiveTabTxt,
                                     fontSize = 14.sp
                                 )
                             }
@@ -309,14 +326,14 @@ fun ProfileScreen(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(if (selectedTab == 1) Color.White else Color.Transparent)
+                                    .background(if (selectedTab == 1) activeTabBg else Color.Transparent)
                                     .clickable { selectedTab = 1 },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     "Preferiti",
                                     fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == 1) Color.Black else Color.Gray,
+                                    color = if (selectedTab == 1) activeTabTxt else inactiveTabTxt,
                                     fontSize = 14.sp
                                 )
                             }
@@ -327,7 +344,7 @@ fun ProfileScreen(
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color(0xFFF5F5F5))
+                                .background(containerSectionColor)
                                 .padding(4.dp)
                         ) {
                             Box(
@@ -339,7 +356,7 @@ fun ProfileScreen(
                                 Text(
                                     text = "Ricette pubblicate",
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.Black,
+                                    color = appTextColor,
                                     fontSize = 14.sp
                                 )
                             }
@@ -364,6 +381,8 @@ fun ProfileScreen(
                                         recipe = entry.key,
                                         isFavorite = entry.value,
                                         showDeleteButton = true,
+                                        containerColor = containerSectionColor,
+                                        textColor = appTextColor,
                                         onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
                                         onFavoriteClick = { profileViewModel.actions.onFavorite(entry.key) },
                                         onDeleteClick = { profileViewModel.actions.onDelete(entry.key) }
@@ -380,6 +399,8 @@ fun ProfileScreen(
                                         recipe = entry.key,
                                         isFavorite = entry.value,
                                         showDeleteButton = isMyOwnRecipe,
+                                        containerColor = containerSectionColor,
+                                        textColor = appTextColor,
                                         onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
                                         onFavoriteClick = { profileViewModel.actions.onFavorite(entry.key) },
                                         onDeleteClick = { profileViewModel.actions.onDelete(entry.key) }
@@ -393,6 +414,8 @@ fun ProfileScreen(
                                 recipe = entry.key,
                                 isFavorite = entry.value,
                                 showDeleteButton = false,
+                                containerColor = containerSectionColor,
+                                textColor = appTextColor,
                                 onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
                                 onFavoriteClick = {
                                     if (AuthState.userId.value != null) {
@@ -415,6 +438,8 @@ fun ProfileRecipeCard(
     recipe: Recipe,
     isFavorite: Boolean,
     showDeleteButton: Boolean,
+    containerColor: Color,
+    textColor: Color,
     onCardClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onDeleteClick: () -> Unit = {}
@@ -425,7 +450,7 @@ fun ProfileRecipeCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color(0xFFF7EAD0), shape = RoundedCornerShape(16.dp))
+            .background(color = containerColor, shape = RoundedCornerShape(16.dp))
             .clickable { onCardClick() }
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -454,12 +479,12 @@ fun ProfileRecipeCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                color = Color.Black
+                color = textColor
             )
             Text(
                 text = formatTime(totalTime),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = textColor.copy(alpha = 0.7f),
             )
 
             Row(
@@ -494,7 +519,7 @@ fun ProfileRecipeCard(
                 Icon(
                     imageVector = Icons.Default.Share,
                     contentDescription = "Condividi Ricetta",
-                    tint = Color.Gray,
+                    tint = textColor.copy(alpha = 0.6f),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -504,7 +529,7 @@ fun ProfileRecipeCard(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Elimina Ricetta",
-                        tint = Color.Gray,
+                        tint = textColor.copy(alpha = 0.6f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -514,7 +539,7 @@ fun ProfileRecipeCard(
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = "Stato Preferiti",
-                    tint = if (isFavorite) Color.Red else Color.Gray,
+                    tint = if (isFavorite) Color.Red else textColor.copy(alpha = 0.6f),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -530,6 +555,6 @@ fun EmptyStateMessage(message: String) {
             .padding(top = 48.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = message, color = Color.Gray, fontSize = 15.sp)
+        Text(text = message, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 15.sp)
     }
 }
