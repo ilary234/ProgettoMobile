@@ -93,6 +93,8 @@ fun ProfileScreen(
 
     if (showLoginDialog) {
         LoginRequiredDialog(
+            containerColor = containerSectionColor,
+            textColor = appTextColor,
             onDismiss = { showLoginDialog = false },
             onConfirm = {
                 showLoginDialog = false
@@ -103,6 +105,8 @@ fun ProfileScreen(
 
     if (showImagePickerDialog) {
         AlertDialog(
+            containerColor = containerSectionColor,
+            textContentColor = appTextColor,
             onDismissRequest = { showImagePickerDialog = false },
             title = { Text("Foto Profilo") },
             text = { Text("Scegli come inserire o cambiare la tua foto profilo:") },
@@ -115,7 +119,7 @@ fun ProfileScreen(
                         showImagePickerDialog = false
                     }
                 ) {
-                    Text("Galleria")
+                    Text("Galleria", color = appTextColor)
                 }
             },
             dismissButton = {
@@ -129,7 +133,7 @@ fun ProfileScreen(
                         showImagePickerDialog = false
                     }
                 ) {
-                    Text("Fotocamera")
+                    Text("Fotocamera", color = appTextColor)
                 }
             }
         )

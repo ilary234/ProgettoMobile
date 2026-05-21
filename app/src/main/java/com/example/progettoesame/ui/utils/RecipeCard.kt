@@ -30,14 +30,14 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
-fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, isFavorite: Boolean, onCardClick: () -> Unit, onFavoriteClick: () -> Unit) {
+fun RecipeCard(textColor: Color, imageUrl: String, title: String, rating: Double, time: String, isFavorite: Boolean, onCardClick: () -> Unit, onFavoriteClick: () -> Unit) {
     val roundedRating = (rating * 10).roundToInt() / 10.0
     val formattedRating = String.format(Locale.US, "%.1f", roundedRating)
 
     Column(
         modifier = Modifier
             .width(160.dp)
-            .padding(2.dp) //mi hanno detto di avvicinarlo
+            .padding(2.dp)
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -72,6 +72,7 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
 
         Text(
             text = title,
+            color = textColor,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -80,7 +81,7 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
         Text(
             text = time,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = textColor.copy(alpha = 0.6f)
         )
 
         Row(
@@ -94,7 +95,7 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
                     roundedRating >= starIndex - 0.75 -> Icons.AutoMirrored.Outlined.StarHalf
                     else -> Icons.Outlined.StarBorder
                 }
-                val tint = if (rating >= starIndex - 0.75) Color(0xFFFFB400) else Color.LightGray
+                val tint = if (rating >= starIndex - 0.75) Color(0xFFFFB400) else textColor.copy(alpha = 0.3f)
 
                 Icon(
                     imageVector = icon,
@@ -107,7 +108,7 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
             Text(
                 text = formattedRating,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
+                color = textColor.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
         }
@@ -116,11 +117,12 @@ fun RecipeCard(imageUrl: String, title: String, rating: Double, time: String, is
 
 @Composable
 fun RecipePreviewCard(onClick: () -> Unit, recipe: Recipe, isFavorite: Boolean,
+                      containerColor: Color, textColor: Color,
                       onLoggedFavourite: () -> Unit, onUnloggedFavourite: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(16.dp))
+            .background(color = containerColor, shape = RoundedCornerShape(16.dp))
             .padding(16.dp)
             .clickable{
                 onClick()
@@ -131,7 +133,7 @@ fun RecipePreviewCard(onClick: () -> Unit, recipe: Recipe, isFavorite: Boolean,
         PreviewCard(recipe.previewImageUrl, recipe.title)
 
         val time = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
-        InfoPreview(recipe.title, formatTime(time), recipe.averageRating)
+        InfoPreview(recipe.title, formatTime(time), recipe.averageRating, textColor)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -149,7 +151,7 @@ fun RecipePreviewCard(onClick: () -> Unit, recipe: Recipe, isFavorite: Boolean,
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite Icon",
                     modifier = Modifier.size(24.dp),
-                    tint = if (isFavorite) Color.Red else Color.Gray
+                    tint = if (isFavorite) Color.Red else textColor.copy(alpha = 0.6f)
                 )
             }
         }
@@ -177,13 +179,14 @@ fun PreviewCard(imageUrl: String, recipeName: String) {
 }
 
 @Composable
-fun InfoPreview(title: String, time: String, rating: Float) {
+fun InfoPreview(title: String, time: String, rating: Float, textColor: Color) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
             text = title,
+            color = textColor,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             maxLines = 1
@@ -191,7 +194,7 @@ fun InfoPreview(title: String, time: String, rating: Float) {
         Text(
             text = time,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = textColor.copy(alpha = 0.7f)
         )
         RatingRow(rating)
     }
@@ -223,31 +226,35 @@ fun RatingRow(rating: Float) {
 }
 
 @Composable
-fun BulletPointText(text: String) {
+fun BulletPointText(text: String, textColor: Color) {
     Row(verticalAlignment = Alignment.Top) {
-        Text("• ", fontWeight = FontWeight.Bold)
-        Text(text = text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
+        Text("• ", color = textColor, fontWeight = FontWeight.Bold)
+        Text(text = text, color = textColor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Normal)
     }
 }
 
 @Composable
-fun LoginRequiredDialog(onDismiss: () -> Unit, onConfirm: () -> Unit){
+fun LoginRequiredDialog(
+    containerColor: Color,
+    textColor: Color,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit){
     AlertDialog(
         title = {Text("Login Richiesto")},
         text = {Text("Per eseguire questa azione è necessario effettuare il login.")},
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Accedi")
+                Text("Accedi", color = textColor)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annulla")
+                Text("Annulla", color = textColor.copy(alpha = 0.6f))
             }
         },
-        containerColor = Color.White,
-        textContentColor = Color.Black,
-        titleContentColor = Color.Black
+        containerColor = containerColor,
+        textContentColor = textColor,
+        titleContentColor = textColor
     )
 }

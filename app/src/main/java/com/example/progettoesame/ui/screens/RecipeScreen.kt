@@ -104,6 +104,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 
     if (showDialog) {
         LoginRequiredDialog(
+            containerColor = containerSectionColor,
+            textColor = appTextColor,
             onDismiss = { showDialog = false },
             onConfirm = { showDialog = false
                 navController.navigate(NavigationRoute.Login) }

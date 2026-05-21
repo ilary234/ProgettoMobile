@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.RecipeCard
@@ -55,8 +56,17 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
     val isResetMode by AuthState.isResetPasswordMode
 
+    val isDark = AppTheme.isDark
+    val currentPastel = AppTheme.pastelColor
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+
     if (showLoginDialog) {
         LoginRequiredDialog(
+            containerColor = containerSectionColor,
+            textColor = appTextColor,
             onDismiss = { showLoginDialog = false },
             onConfirm = {
                 showLoginDialog = false
@@ -77,11 +87,10 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = Color.White,
+            containerColor = appBackgroundColor,
             topBar = {
-                // alpha per nascondere senza rimuovere lo spazio
                 Box(modifier = Modifier.alpha(if (isMenuOpen) 0f else 1f)) {
-                    Column() {
+                    Column {
                         HomeTopBar(
                             text = topBarTitle,
                             onMenuClick = { isMenuOpen = true },
@@ -91,9 +100,16 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                 } else {
                                     navController.navigate(NavigationRoute.Login)
                                 }
-                            }
+                            },
+                            containerColor = containerSectionColor,
+                            textColor = appTextColor
                         )
-                        SearchBar(value = searchQuery, onValueChange = { homeViewModel.onSearchQueryChange(it) })
+                        SearchBar(
+                            value = searchQuery,
+                            onValueChange = { homeViewModel.onSearchQueryChange(it) },
+                            containerColor = containerSectionColor,
+                            textColor = appTextColor
+                        )
                     }
                 }
             },
@@ -108,8 +124,8 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                             }
                         },
                         modifier = Modifier.padding(bottom = 16.dp),
-                        containerColor = Color(0xFFF7EAD0), //poi da sistemare
-                        contentColor = Color.Black, //poi da sistemare
+                        containerColor = containerSectionColor,
+                        contentColor = appTextColor,
                         shape = CircleShape
                     ) {
                         Icon(
@@ -125,7 +141,10 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                     .fillMaxSize()
             ) {
                 if (homeState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = appTextColor
+                    )
                 } else {
                     LazyColumn(
                         modifier = Modifier
@@ -137,7 +156,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                             if (searchResults.isEmpty()) {
                                 item {
                                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                        Text("Nessuna ricetta trovata", color = Color.Gray)
+                                        Text("Nessuna ricetta trovata", color = appTextColor.copy(alpha = 0.6f))
                                     }
                                 }
                             } else {
@@ -145,15 +164,21 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                     val recipe = entry.key
                                     val isFavorite = entry.value
 
-                                    RecipePreviewCard({navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))},
-                                        recipe,isFavorite,{homeViewModel.actions.onFavorite(recipe, currentUserId)},
-                                        {showLoginDialog = true})
+                                    RecipePreviewCard(
+                                        onClick = { navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId)) },
+                                        recipe = recipe,
+                                        isFavorite = isFavorite,
+                                        containerColor = containerSectionColor,
+                                        textColor = appTextColor,
+                                        onLoggedFavourite = { homeViewModel.actions.onFavorite(recipe, currentUserId) },
+                                        onUnloggedFavourite = { showLoginDialog = true }
+                                    )
                                 }
                             }
                         } else {
                             items(homeState.sections) { section ->
                                 Column {
-                                    SectionHeader(title = section.title)
+                                    SectionHeader(title = section.title, textColor = appTextColor)
 
                                     LazyRow(
                                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -167,6 +192,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                             val totalTime = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
 
                                             RecipeCard(
+                                                textColor = appTextColor,
                                                 imageUrl = recipe.previewImageUrl,
                                                 title = recipe.title,
                                                 rating = recipe.averageRating.toDouble(),
@@ -197,7 +223,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.1f))
+                    .background(appTextColor.copy(alpha = 0.1f))
                     .clickable { isMenuOpen = false }
             ) {
                 Column(
@@ -205,7 +231,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                         .fillMaxWidth(0.75f)
                         .fillMaxHeight()
                         .background(
-                            color = Color(0xFFE0E0E0),
+                            color = containerSectionColor,
                             shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
                         )
                         .clickable(enabled = false) { }
@@ -218,19 +244,26 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { isMenuOpen = false }) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Indietro")
+                            Icon(
+                                imageVector = Icons.Default.ArrowBackIosNew,
+                                contentDescription = "Indietro",
+                                tint = appTextColor
+                            )
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        Text("Menu", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text("Menu", color = appTextColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         Spacer(modifier = Modifier.weight(1.3f))
                     }
 
                     categories.categories.sortedBy { it.order }
-                        .forEach { CategoryMenuItem(it.name,
-                            onCategoryClick = {
-                                isMenuOpen = false
-                                navController.navigate(NavigationRoute.CategoryRecipes(it.categoryId, it.name))
-                            }
+                        .forEach {
+                            CategoryMenuItem(
+                                title = it.name,
+                                textColor = appTextColor,
+                                onCategoryClick = {
+                                    isMenuOpen = false
+                                    navController.navigate(NavigationRoute.CategoryRecipes(it.categoryId, it.name))
+                                }
                         )}
                 }
             }
@@ -240,25 +273,25 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit) {
+fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit, containerColor: Color, textColor: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(24.dp))
+            .background(containerColor, shape = RoundedCornerShape(24.dp))
     ) {
         CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
-            title = { Text(text = text, fontWeight = FontWeight.SemiBold) },
+            title = { Text(text = text, color = textColor, fontWeight = FontWeight.SemiBold) },
             navigationIcon = {
                 IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = textColor)
                 }
             },
             actions = {
                 IconButton(onClick = onProfileClick) {
-                    Icon(Icons.Default.AccountCircle, contentDescription = "Profilo")
+                    Icon(Icons.Default.AccountCircle, contentDescription = "Profilo", tint = textColor)
                 }
             }
         )
@@ -266,27 +299,29 @@ fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit
 }
 
 @Composable
-fun SearchBar(value: String, onValueChange: (String) -> Unit) {
+fun SearchBar(value: String, onValueChange: (String) -> Unit, containerColor: Color, textColor: Color) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        placeholder = { Text("Search", color = Color.Gray) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        placeholder = { Text("Search", color = textColor.copy(alpha = 0.5f)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = textColor.copy(alpha = 0.5f)) },
         shape = CircleShape,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFFF5F5F5),
-            unfocusedContainerColor = Color(0xFFF5F5F5),
+            focusedContainerColor = containerColor,
+            unfocusedContainerColor = containerColor,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = textColor,
+            unfocusedTextColor = textColor
         )
     )
 }
 
 @Composable
-fun CategoryMenuItem(title: String, onCategoryClick: () -> Unit) {
+fun CategoryMenuItem(title: String, textColor: Color, onCategoryClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -295,17 +330,18 @@ fun CategoryMenuItem(title: String, onCategoryClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(text = title, color = textColor, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
+            tint = textColor.copy(alpha = 0.7f)
         )
     }
 }
 
 @Composable
-fun SectionHeader(title: String) {
+fun SectionHeader(title: String, textColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -315,6 +351,7 @@ fun SectionHeader(title: String) {
     ) {
         Text(
             text = title,
+            color = textColor,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
