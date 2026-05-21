@@ -62,6 +62,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progettoesame.R
+import com.example.progettoesame.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +84,14 @@ fun AuthScreenTemplate(
     var username by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val isDark = AppTheme.isDark
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val appGrayColor = if (isDark) Color(0x99FFFFFF) else Color.Gray
+    val dividerColor = if (isDark) Color(0xFF303030) else Color(0xFFE0E0E0)
+    val socialBtnColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF2F2F2)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -98,12 +107,13 @@ fun AuthScreenTemplate(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Indietro",
-                            modifier = Modifier.size(28.dp) // Più grande per i meno esperti
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
+                    containerColor = appBackgroundColor,
+                    titleContentColor = appTextColor,
+                    navigationIconContentColor = appTextColor
                 )
             )
         }
@@ -112,28 +122,25 @@ fun AuthScreenTemplate(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(appBackgroundColor)
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            //Spacer(modifier = Modifier.height(60.dp))
-
-            /*Text(
-                text = "Nome App",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )*/
-
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = appTextColor
             )
 
-            Text(text = subtitle, color = Color.Gray, textAlign = TextAlign.Center)
+            Text(
+                text = subtitle,
+                color = appGrayColor,
+                textAlign = TextAlign.Center
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -154,8 +161,7 @@ fun AuthScreenTemplate(
                 label = { Text("Password") },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image =
-                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = null)
                     }
@@ -199,43 +205,53 @@ fun AuthScreenTemplate(
                 onClick = { onButtonClick(email, password, username) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = appTextColor,
+                    contentColor = appBackgroundColor
+                )
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = appBackgroundColor, modifier = Modifier.size(24.dp))
                 } else {
-                    Text(buttonText, color = Color.White)
+                    Text(buttonText, color = appBackgroundColor)
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
-                Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = Color.Gray)
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = dividerColor)
+                Text("oppure", modifier = Modifier.padding(horizontal = 16.dp), color = appGrayColor)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = dividerColor)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SocialLoginButton(text = "Continua con Google", iconRes = R.drawable.ic_google, onClick = onSocialGoogleClick)
+            SocialLoginButton(
+                text = "Continua con Google",
+                iconRes = R.drawable.ic_google,
+                backgroundColor = socialBtnColor,
+                contentColor = appTextColor,
+                onClick = onSocialGoogleClick
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            LegalText()
+            LegalText(primaryColor = appTextColor, secondaryColor = appGrayColor)
 
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
                 text = footerText,
-                modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() }
+                modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() },
+                color = appTextColor
             )
         }
     }
 }
 
 @Composable
-fun SocialLoginButton(text: String, iconRes: Int, onClick : () -> Unit) {
+fun SocialLoginButton(text: String, iconRes: Int, backgroundColor: Color, contentColor: Color, onClick : () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -243,8 +259,8 @@ fun SocialLoginButton(text: String, iconRes: Int, onClick : () -> Unit) {
             .height(54.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFF2F2F2),
-            contentColor = Color.Black
+            containerColor = backgroundColor,
+            contentColor = contentColor
         ),
         elevation = null
     ) {
@@ -264,18 +280,18 @@ fun SocialLoginButton(text: String, iconRes: Int, onClick : () -> Unit) {
 }
 
 @Composable
-fun LegalText() {
+fun LegalText(primaryColor: Color, secondaryColor: Color) {
     val annotatedText = buildAnnotatedString {
-        withStyle(style = SpanStyle(color = Color.Gray)) {
+        withStyle(style = SpanStyle(color = secondaryColor)) {
             append("By clicking continue, you agree to our ")
         }
-        withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Medium)) {
+        withStyle(style = SpanStyle(color = primaryColor, fontWeight = FontWeight.Medium)) {
             append("Terms of Service")
         }
-        withStyle(style = SpanStyle(color = Color.Gray)) {
+        withStyle(style = SpanStyle(color = secondaryColor)) {
             append(" and ")
         }
-        withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Medium)) {
+        withStyle(style = SpanStyle(color = primaryColor, fontWeight = FontWeight.Medium)) {
             append("Privacy Policy")
         }
     }
