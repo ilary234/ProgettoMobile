@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,16 +16,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun InitialErrorScreen(navController: NavHostController, initialErrorViewModel: InitialErrorViewModel) {
     val isReady by initialErrorViewModel.isReady.collectAsStateWithLifecycle()
+
+    val isDark = AppTheme.isDark
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+
     LaunchedEffect(isReady) {
         if (isReady) {
             navController.navigate(NavigationRoute.Home) {
@@ -41,7 +49,7 @@ fun InitialErrorScreen(navController: NavHostController, initialErrorViewModel: 
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White
+        containerColor = appBackgroundColor
     ) {paddingValues ->
         Column(
             modifier = Modifier
@@ -53,22 +61,25 @@ fun InitialErrorScreen(navController: NavHostController, initialErrorViewModel: 
         ) {
             Text(
                 text = "Per il primo avvio è necessario essere connessi a Internet.",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+                textAlign = TextAlign.Center,
+                color = appTextColor,
+                style = MaterialTheme.typography.bodyLarge
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Tentativo di riconnessione in corso...",
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                color = androidx.compose.material3.MaterialTheme.colorScheme.secondary
+                textAlign = TextAlign.Center,
+                color = appTextColor.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                color = appTextColor
+            )
         }
     }
 }
