@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
@@ -38,6 +39,11 @@ fun EditProfileScreen(
 
     var isDataLoaded by remember { mutableStateOf(false) }
 
+    val isDark = AppTheme.isDark
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+
     LaunchedEffect(Unit) {
         authViewModel.getUsername()
     }
@@ -52,14 +58,19 @@ fun EditProfileScreen(
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
-            kotlinx.coroutines.delay(4000) // 5 secondi se deve leggere della mail
+            kotlinx.coroutines.delay(4000)
             authViewModel.clearError()
         }
     }
 
     if (!isDataLoaded) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color.Black)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(appBackgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = appTextColor)
         }
     } else {
         Scaffold(
@@ -71,31 +82,29 @@ fun EditProfileScreen(
                             Icon(Icons.Default.ArrowBack, contentDescription = "Indietro")
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = appBackgroundColor,
+                        titleContentColor = appTextColor,
+                        navigationIconContentColor = appTextColor
+                    )
                 )
             }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(appBackgroundColor)
                     .padding(innerPadding)
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                /*Text(
-                text = "Modifica Profilo",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )*/
-
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .onFocusChanged { focusState ->
                             if (focusState.isFocused) {
                                 if (username == currentUsername) username = ""
@@ -114,7 +123,8 @@ fun EditProfileScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .onFocusChanged { focusState ->
                             if (focusState.isFocused) {
                                 if (email == currentEmail) email = ""
@@ -142,12 +152,19 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = appTextColor,
+                        contentColor = appBackgroundColor
+                    )
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = appBackgroundColor, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Salva Modifiche", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Salva Modifiche",
+                            color = appBackgroundColor,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
