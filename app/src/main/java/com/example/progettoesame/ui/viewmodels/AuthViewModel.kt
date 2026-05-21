@@ -176,17 +176,4 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
             }
         }
     }
-
-    fun logout(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                repository.logout()
-                AuthState.setLoggedOut()
-                onSuccess() // Naviga solo dopo che lo stato è cambiato
-                clearError() //forse è da togliere
-            } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Errore durante il logout"
-            }
-        }
-    }
 }

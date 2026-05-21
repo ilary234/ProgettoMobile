@@ -9,9 +9,11 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.example.progettoesame.data.repositories.ThemeRepository
 import com.example.progettoesame.ui.NavGraph
 import com.example.progettoesame.ui.theme.ProgettoEsameTheme
 import com.example.progettoesame.ui.utils.AuthState
+import com.example.progettoesame.ui.utils.Theme
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.SupabaseClient
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -22,6 +24,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : ComponentActivity() {
     private val splashViewModel: SplashViewModel by viewModel()
     private val supabaseClient: SupabaseClient by inject()
+    private val themeRepository: ThemeRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -34,7 +37,13 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             KoinContext {
-                ProgettoEsameTheme {
+                val themeState by themeRepository.theme.collectAsStateWithLifecycle(initialValue = Theme.Light)
+
+                val darkTheme = when (themeState) {
+                    Theme.Light -> false
+                    Theme.Dark -> true
+                }
+                ProgettoEsameTheme(darkTheme) {
                     val navController = rememberNavController()
                     val startDestination by splashViewModel.startDestination.collectAsStateWithLifecycle()
                     startDestination?.let { destination ->

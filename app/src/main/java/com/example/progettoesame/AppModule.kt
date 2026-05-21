@@ -15,6 +15,7 @@ import com.example.progettoesame.data.repositories.ProfileRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.SplashRepository
+import com.example.progettoesame.data.repositories.ThemeRepository
 import com.example.progettoesame.data.repositories.UserRepository
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
@@ -23,6 +24,7 @@ import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import com.example.progettoesame.ui.viewmodels.NewRecipeViewModel
 import com.example.progettoesame.ui.viewmodels.ProfileViewModel
 import com.example.progettoesame.ui.viewmodels.RecipeViewModel
+import com.example.progettoesame.ui.viewmodels.SettingViewModel
 import com.example.progettoesame.ui.viewmodels.SplashViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
@@ -63,6 +65,8 @@ val appModule = module {
     single { AuthManager(get()) }
     single { SyncManager(get()) }
 
+    single { ThemeRepository(get()) }
+
     single { SplashRepository(get<ProjectDatabase>().CategoryDAO(),
                                 get<ProjectDatabase>().RecipeDAO(),
                                   get<ProjectDatabase>().UserDAO(),
@@ -84,6 +88,7 @@ val appModule = module {
     single { AuthRepository(get(), get<ProjectDatabase>().UserDAO()) }
     single { UserRepository(get<ProjectDatabase>().UserDAO(), get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserRatedDAO()) }
 
+    viewModel { SettingViewModel(get(), get()) }
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get(), get()) }
     viewModel { ProfileViewModel(get(), get(), get()) }

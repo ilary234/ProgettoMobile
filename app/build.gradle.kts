@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.androidx.core.splashscreen)
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
