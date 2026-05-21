@@ -49,6 +49,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,10 +72,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.TimeType
@@ -95,6 +96,13 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
 
     val ctx = LocalContext.current
 
+    val isDark = AppTheme.isDark
+    val currentPastel = AppTheme.pastelColor
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
             delay(4000)
@@ -110,11 +118,10 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
 
     key(activeTimeDialog) {
         activeTimeDialog?.let { type ->
-
             val minutes = when (type) {
                 TimeType.PREPARATION -> recipeState.preparation
-                TimeType.WAITING -> recipeState.waiting?: 0
-                TimeType.COOKING ->recipeState.cooking
+                TimeType.WAITING -> recipeState.waiting ?: 0
+                TimeType.COOKING -> recipeState.cooking
             }
 
             val timePickerState = rememberTimePickerState(
@@ -143,20 +150,21 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = appBackgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(if (recipeId == null) "Nuova ricetta" else "Modifica Ricetta", fontWeight = FontWeight.Bold) },
+                title = { Text(if (recipeId == null) "Nuova ricetta" else "Modifica Ricetta", color = appTextColor, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = appBackgroundColor,
+                    titleContentColor = appTextColor,
+                    navigationIconContentColor = appTextColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            "Back icon"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back icon",
+                            tint = appTextColor
                         )
                     }
                 }
@@ -182,17 +190,19 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete Icon",
-                                tint = Color.Black
+                                tint = appTextColor
                             )
                         }
                     }
 
                 } else {
-                    AddImageCard({ newUri ->
-                        newRecipeViewModel.recipeActions.onPreviewImageChange(
-                            newUri
-                        )
-                    }, 1, ctx)
+                    AddImageCard(
+                        onNewUri = { newUri -> newRecipeViewModel.recipeActions.onPreviewImageChange(newUri) },
+                        maxPhotos = 1,
+                        ctx = ctx,
+                        backgroundColor = appBackgroundColor,
+                        iconTint = appTextColor.copy(alpha = 0.6f)
+                    )
                 }
 
                 OutlinedTextField(
@@ -200,29 +210,36 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                     onValueChange = { newRecipeViewModel.recipeActions.onTitleChange(it) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Titolo") },
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = appTextColor,
+                        unfocusedTextColor = appTextColor,
+                        focusedLabelColor = appTextColor,
+                        unfocusedLabelColor = appTextColor.copy(alpha = 0.6f),
+                        focusedBorderColor = appTextColor,
+                        unfocusedBorderColor = appTextColor.copy(alpha = 0.4f)
+                    )
                 )
 
                 CategoryItem(
-                    recipeState.category?.name ?: "",
-                    categories.categories.sortedBy { it.order }.map { it.name },
-                    { newRecipeName ->
-                        newRecipeViewModel.recipeActions.onCategoryChange(
-                            newRecipeName
-                        )
-                    })
+                    name = recipeState.category?.name ?: "",
+                    categories = categories.categories.sortedBy { it.order }.map { it.name },
+                    onCategoryChange = { newRecipeName -> newRecipeViewModel.recipeActions.onCategoryChange(newRecipeName) },
+                    containerColor = containerSectionColor,
+                    textColor = appTextColor
+                )
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("Tempi:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
-                    TimeInputCard({ activeTimeDialog = TimeType.PREPARATION }, "Preparazione: ${formatTime(recipeState.preparation)}")
-                    TimeInputCard({ activeTimeDialog = TimeType.WAITING }, "Riposo: ${formatTime(recipeState.waiting ?: 0)}")
-                    TimeInputCard({ activeTimeDialog = TimeType.COOKING }, "Cottura: ${formatTime(recipeState.cooking)}")
+                    Text("Tempi:", color = appTextColor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
+                    TimeInputCard({ activeTimeDialog = TimeType.PREPARATION }, "Preparazione: ${formatTime(recipeState.preparation)}", containerSectionColor, appTextColor)
+                    TimeInputCard({ activeTimeDialog = TimeType.WAITING }, "Riposo: ${formatTime(recipeState.waiting ?: 0)}", containerSectionColor, appTextColor)
+                    TimeInputCard({ activeTimeDialog = TimeType.COOKING }, "Cottura: ${formatTime(recipeState.cooking)}", containerSectionColor, appTextColor)
                 }
 
-                Text("Ingredienti", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("Ingredienti", color = appTextColor, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -237,7 +254,9 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                                 { newName -> newRecipeViewModel.ingredientActions.onValueChange(index, ingredient.copy(name = newName)) },
                                 { newQuantity -> newRecipeViewModel.ingredientActions.onValueChange(index, ingredient.copy(quantity = newQuantity)) },
                                 { newUnit -> newRecipeViewModel.ingredientActions.onValueChange(index, ingredient.copy(unit = newUnit)) },
-                                { newRecipeViewModel.ingredientActions.onDeleteIngredient(index) })
+                                { newRecipeViewModel.ingredientActions.onDeleteIngredient(index) },
+                                containerSectionColor,
+                                appTextColor)
                         }
                     }
                     TextButton(
@@ -245,7 +264,8 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                             newRecipeViewModel.ingredientActions.onAddIngredient()
                         },
                         modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = appTextColor)
                     ) {
                         Text("Aggiungi ")
                         Icon(
@@ -256,7 +276,7 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                     }
                 }
 
-                Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("Procedimento", color = appTextColor, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -269,13 +289,17 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                                 { newDescription -> newRecipeViewModel.stepActions.onDescriptionChange(step.copy(description = newDescription)) },
                                 { newRecipeViewModel.stepActions.onDeleteStep(step) },
                                 { url -> newRecipeViewModel.stepActions.onAddImage(step.number, url) },
-                                { imageIndex -> newRecipeViewModel.stepActions.onDeleteImage(step.number, imageIndex) })
+                                { imageIndex -> newRecipeViewModel.stepActions.onDeleteImage(step.number, imageIndex) },
+                                containerSectionColor,
+                                appTextColor,
+                                appBackgroundColor)
                         }
                     }
                     TextButton(
                         onClick = { newRecipeViewModel.stepActions.onAddStep(recipeState.steps.size + 1) },
                         modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = appTextColor)
                     ) {
                         Text("Aggiungi ")
                         Icon(
@@ -290,9 +314,9 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                     onClick = { newRecipeViewModel.saveRecipe(ctx) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(containerColor = appTextColor)
                 ) {
-                    Text("Salva", color = Color.White)
+                    Text("Salva", color = appBackgroundColor)
                 }
             }
             errorMessage?.let {
@@ -309,11 +333,11 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
+                        .background(appTextColor.copy(alpha = 0.3f))
                         .pointerInput(Unit) {},
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color.Gray)
+                    CircularProgressIndicator(color = appTextColor)
                 }
             }
         }
@@ -349,12 +373,12 @@ fun TimeInputDialog(onDismiss: () -> Unit, onConfirm: (Int) -> Unit, timePickerS
 }
 
 @Composable
-fun TimeInputCard(onClick: () -> Unit, text: String) {
+fun TimeInputCard(onClick: () -> Unit, text: String, containerColor: Color, textColor: Color) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = Color(0xfff7ead0)
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -365,21 +389,20 @@ fun TimeInputCard(onClick: () -> Unit, text: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text, style = MaterialTheme.typography.bodyMedium)
-            Icon(Icons.Default.Timer, contentDescription = "Clock icon")
+            Text(text, color = textColor, style = MaterialTheme.typography.bodyMedium)
+            Icon(Icons.Default.Timer, contentDescription = "Clock icon", tint = textColor)
         }
     }
 }
 
 @Composable
-fun CategoryItem(name: String, categories: List<String>, onCategoryChange: (String) -> Unit) {
+fun CategoryItem(name: String, categories: List<String>, onCategoryChange: (String) -> Unit, containerColor: Color, textColor: Color) {
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
         expanded = isCategoryMenuExpanded,
         onExpandedChange = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
     ) {
-
         OutlinedTextField(
             value = name,
             onValueChange = { },
@@ -389,17 +412,25 @@ fun CategoryItem(name: String, categories: List<String>, onCategoryChange: (Stri
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor,
+                focusedLabelColor = textColor,
+                unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                focusedBorderColor = textColor,
+                unfocusedBorderColor = textColor.copy(alpha = 0.4f)
+            )
         )
 
         ExposedDropdownMenu(
             expanded = isCategoryMenuExpanded,
             onDismissRequest = { isCategoryMenuExpanded = false },
-            modifier = Modifier.background(color = Color(0xfff7ead0))
+            modifier = Modifier.background(color = containerColor)
         ) {
             categories.forEach { category ->
                     DropdownMenuItem(
-                        text = { Text(category, color = Color.Black) },
+                        text = { Text(category, color = textColor) },
                         onClick = {
                             onCategoryChange(category)
                             isCategoryMenuExpanded = false
@@ -416,7 +447,8 @@ fun IngredientItem(name: String, quantity: Float, unit: String, isDeletable: Boo
                    onNameChange: (String) -> Unit,
                    onQuantityChange: (Float) -> Unit,
                    onUnitChange: (String) -> Unit,
-                   onDelete: () -> Unit){
+                   onDelete: () -> Unit,
+                   containerSectionColor: Color, textColor: Color){
     var isExpanded by remember { mutableStateOf(false) }
     var localQuantityText by remember(quantity) {
         mutableStateOf(if (quantity == 0f) "" else quantity.toString().replace(".0", ""))
@@ -431,7 +463,7 @@ fun IngredientItem(name: String, quantity: Float, unit: String, isDeletable: Boo
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete Icon",
-                    tint = Color.Gray
+                    tint = textColor.copy(alpha = 0.5f)
                 )
             }
         }
@@ -446,6 +478,14 @@ fun IngredientItem(name: String, quantity: Float, unit: String, isDeletable: Boo
                 shape = RoundedCornerShape(12.dp),
                 maxLines = 1,
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor,
+                    focusedLabelColor = textColor,
+                    unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                    focusedBorderColor = textColor,
+                    unfocusedBorderColor = textColor.copy(alpha = 0.4f)
+                )
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -467,7 +507,15 @@ fun IngredientItem(name: String, quantity: Float, unit: String, isDeletable: Boo
                     placeholder = {Text("Q.tà")},
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     shape = RoundedCornerShape(12.dp),
-                    maxLines = 1
+                    maxLines = 1,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = textColor,
+                        unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                        focusedBorderColor = textColor,
+                        unfocusedBorderColor = textColor.copy(alpha = 0.4f)
+                    )
                 )
                 ExposedDropdownMenuBox(
                     expanded = isExpanded,
@@ -483,17 +531,25 @@ fun IngredientItem(name: String, quantity: Float, unit: String, isDeletable: Boo
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
                         modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = textColor,
+                            unfocusedTextColor = textColor,
+                            focusedLabelColor = textColor,
+                            unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+                            focusedBorderColor = textColor,
+                            unfocusedBorderColor = textColor.copy(alpha = 0.4f)
+                        )
                     )
 
                     ExposedDropdownMenu(
                         expanded = isExpanded,
                         onDismissRequest = { isExpanded = false },
-                        modifier = Modifier.background(color = Color(0xfff7ead0))
+                        modifier = Modifier.background(color = containerSectionColor)
                     ) {
                         Units.entries.forEach { unit ->
                             DropdownMenuItem(
-                                text = { Text(unit.name, color = Color.Black) },
+                                text = { Text(unit.name, color = textColor) },
                                 onClick = {
                                     onUnitChange(unit.name)
                                     isExpanded = false
@@ -516,14 +572,14 @@ fun StepItem(number: Int, description: String,
              onDescriptionChange: (String) -> Unit,
              onDelete: () -> Unit,
              onAddImage: (String) -> Unit,
-             onDeleteImage: (Int) -> Unit) {
+             onDeleteImage: (Int) -> Unit,
+             containerColor: Color,
+             textColor: Color,
+             appBackgroundColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = Color(0xfff7ead0),
-                shape = RoundedCornerShape(12.dp)
-            )
+            .background(color = containerColor, shape = RoundedCornerShape(12.dp))
             .padding(start = 8.dp)
             .height(56.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -531,6 +587,7 @@ fun StepItem(number: Int, description: String,
     ) {
         Text(
             "Passaggio ${number}",
+            color = textColor,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Normal
         )
@@ -540,7 +597,7 @@ fun StepItem(number: Int, description: String,
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete Icon",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.Gray
+                    tint = textColor.copy(alpha = 0.6f)
                 )
             }
         }
@@ -558,7 +615,7 @@ fun StepItem(number: Int, description: String,
         modifier = Modifier.fillMaxWidth()
     ) { page ->
         if (page == 0) {
-            AddImageCard(onAddImage, 5, ctx)
+            AddImageCard(onAddImage, 5, ctx, appBackgroundColor, textColor.copy(alpha = 0.5f))
         } else {
             Box(modifier = Modifier.fillMaxWidth()) {
                 PreviewCard(imageUrls[page - 1], "Passaggio ${number} - Foto ${page}")
@@ -569,13 +626,12 @@ fun StepItem(number: Int, description: String,
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete Icon",
-                        tint = Color.Black
+                        tint = textColor
                     )
                 }
             }
         }
     }
-
 
     OutlinedTextField(
         value = description,
@@ -587,12 +643,20 @@ fun StepItem(number: Int, description: String,
             imeAction = ImeAction.Default,
             keyboardType = KeyboardType.Text
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = textColor,
+            unfocusedTextColor = textColor,
+            focusedLabelColor = textColor,
+            unfocusedLabelColor = textColor.copy(alpha = 0.6f),
+            focusedBorderColor = textColor,
+            unfocusedBorderColor = textColor.copy(alpha = 0.4f)
+        )
     )
 }
 
 @Composable
-fun TakePhotoButton(onNewUri: (String) -> Unit, ctx: Context) {
+fun TakePhotoButton(onNewUri: (String) -> Unit, ctx: Context, iconTint: Color) {
     var launcherUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { pictureTaken ->
@@ -603,7 +667,7 @@ fun TakePhotoButton(onNewUri: (String) -> Unit, ctx: Context) {
 
     IconButton(
         modifier = Modifier
-            .border(1.dp, Color.Gray, RoundedCornerShape(16.dp))
+            .border(1.dp, iconTint.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
             .padding(4.dp),
         onClick = {
             val uri = createImageUriInGallery(ctx)
@@ -615,14 +679,14 @@ fun TakePhotoButton(onNewUri: (String) -> Unit, ctx: Context) {
         Icon(
             imageVector = Icons.Default.Camera,
             contentDescription = "Take photo Icon",
-            tint = Color.Gray
+            tint = iconTint
         )
     }
 }
 @Composable
-fun AddImageCard(onNewUri: (String) -> Unit, maxPhotos: Int, ctx: Context) {
+fun AddImageCard(onNewUri: (String) -> Unit, maxPhotos: Int, ctx: Context, backgroundColor: Color, iconTint: Color) {
 
-    val pickMedia = when(maxPhotos) {
+    val pickMedia = when (maxPhotos) {
         1 -> rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
                 onNewUri(uri.toString())
@@ -643,8 +707,9 @@ fun AddImageCard(onNewUri: (String) -> Unit, maxPhotos: Int, ctx: Context) {
             .fillMaxWidth()
             .height(200.dp),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = Color.White
-        )
+            containerColor = backgroundColor
+        ),
+        border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(iconTint.copy(alpha = 0.3f)))
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -653,18 +718,20 @@ fun AddImageCard(onNewUri: (String) -> Unit, maxPhotos: Int, ctx: Context) {
         ) {
             IconButton(
                 modifier = Modifier
-                    .border(1.dp, Color.Gray, RoundedCornerShape(16.dp))
+                    .border(1.dp, iconTint.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                     .padding(4.dp),
-                onClick = { pickMedia.launch(PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) {
+                onClick = {
+                    pickMedia.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }) {
                 Icon(
                     imageVector = Icons.Default.Image,
                     contentDescription = "Select image Icon",
-                    tint = Color.Gray
+                    tint = iconTint
                 )
             }
-            TakePhotoButton(onNewUri, ctx)
+            TakePhotoButton(onNewUri, ctx, iconTint)
         }
     }
 }
