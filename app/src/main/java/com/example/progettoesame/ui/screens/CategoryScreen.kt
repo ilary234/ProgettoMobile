@@ -31,21 +31,30 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.RecipePreviewCard
 import com.example.progettoesame.ui.viewmodels.CategoryViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryScreen(navController: NavController,
-                   categoryId : String,
-                   categoryName: String,
-                   categoryViewModel: CategoryViewModel) {
+fun CategoryScreen(
+    navController: NavController,
+    categoryId: String,
+    categoryName: String,
+    categoryViewModel: CategoryViewModel
+) {
     val recipesState by categoryViewModel.favoriteState.collectAsStateWithLifecycle()
     val isRefreshing by categoryViewModel.isRefreshing.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+
+    val isDark = AppTheme.isDark
+    val currentPastel = AppTheme.pastelColor
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
 
     val onRefresh: () -> Unit = {
         categoryViewModel.syncAndFetchRecipes(AuthState.userId.value, categoryId)
@@ -62,21 +71,23 @@ fun CategoryScreen(navController: NavController,
                 navController.navigate(NavigationRoute.Login) }
         )
     }
+
     Scaffold(
-        containerColor = Color.White,
+        containerColor = appBackgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(categoryName, fontWeight = FontWeight.Bold) },
+                title = { Text(text = categoryName, color = appTextColor, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = appBackgroundColor,
+                    titleContentColor = appTextColor,
+                    navigationIconContentColor = appTextColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            "Back icon"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back icon",
+                            tint = appTextColor
                         )
                     }
                 }
@@ -100,7 +111,7 @@ fun CategoryScreen(navController: NavController,
                     val recipe = it.key
                     val isFavorite = it.value
                     RecipePreviewCard({navController.navigate(NavigationRoute.RecipeDetails(recipe.recipeId))},
-                    recipe, isFavorite, {categoryViewModel.actions.onFavorite(recipe, AuthState.userId.value!!)},
+                    recipe, isFavorite, containerSectionColor, appTextColor, {categoryViewModel.actions.onFavorite(recipe, AuthState.userId.value!!)},
                         {showDialog = true})
                 }
             }

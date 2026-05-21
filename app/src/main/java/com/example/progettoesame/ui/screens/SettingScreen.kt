@@ -180,7 +180,7 @@ fun SettingScreen(navController: NavHostController, settingViewModel: SettingVie
                         modifier = Modifier
                             .size(75.dp)
                             .clip(CircleShape)
-                            .background(pastelEnum.lightColor)
+                            .background(if (isDarkTheme) pastelEnum.darkColor else pastelEnum.lightColor) //da eliminare se non piace a ila
                             .border(
                                 width = if (isSelected) 3.dp else 1.dp,
                                 color = if (isSelected) appTextColor else Color.LightGray,
