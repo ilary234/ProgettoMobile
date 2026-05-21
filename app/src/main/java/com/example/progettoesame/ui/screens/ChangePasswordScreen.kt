@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
@@ -60,6 +61,12 @@ fun ChangePasswordScreen(
 
     var oldPassVisible by remember { mutableStateOf(false) }
     var newPassVisible by remember { mutableStateOf(false) }
+
+    val isDark = AppTheme.isDark
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val appGrayColor = if (isDark) Color(0x99FFFFFF) else Color.Gray
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {
@@ -100,7 +107,9 @@ fun ChangePasswordScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
+                    containerColor = appBackgroundColor,
+                    titleContentColor = appTextColor,
+                    navigationIconContentColor = appTextColor
                 )
             )
         }
@@ -108,22 +117,16 @@ fun ChangePasswordScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(appBackgroundColor)
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(20.dp)) //era 60 prima
-
-            /*Text(
-                text = "Cambia Password",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )*/
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Scegli una password sicura per proteggere il tuo account",
-                color = Color.Gray,
+                color = appGrayColor,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -171,7 +174,7 @@ fun ChangePasswordScreen(
                 onValueChange = { confirmPassword = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Conferma Nuova Password") },
-                visualTransformation = PasswordVisualTransformation(), // Qui di solito non serve l'occhio
+                visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(12.dp)
             )
 
@@ -185,8 +188,7 @@ fun ChangePasswordScreen(
                                 popUpTo(NavigationRoute.ResetPassword) { inclusive = true }
                             }
                         }
-                    }
-                    else {
+                    } else {
                         authViewModel.updatePasswordStandard(oldPassword, newPassword, confirmPassword) {
                             navController.popBackStack()
                         }
@@ -196,9 +198,16 @@ fun ChangePasswordScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = appTextColor,
+                    contentColor = appBackgroundColor
+                )
             ) {
-                Text("Aggiorna Password", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Aggiorna Password",
+                    color = appBackgroundColor,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
