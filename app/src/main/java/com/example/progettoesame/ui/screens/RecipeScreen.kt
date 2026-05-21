@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
+import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.BulletPointText
 import com.example.progettoesame.ui.utils.formatTime
@@ -77,6 +78,12 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 
     val ctx = LocalContext.current
 
+    val isDark = AppTheme.isDark
+    val currentPastel = AppTheme.pastelColor
+
+    val appBackgroundColor = if (isDark) Color.Black else Color.White
+    val appTextColor = if (isDark) Color.White else Color.Black
+    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)
@@ -87,7 +94,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     }
 
     if(recipeState == null) {
-        Scaffold { paddingValues ->
+        Scaffold(containerColor = appBackgroundColor) { paddingValues ->
             CircularProgressIndicator(
                 modifier = Modifier.padding(paddingValues)
             )
@@ -108,20 +115,21 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
     val author = currentData.author
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = appBackgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = recipe.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(text = recipe.title, color = appTextColor, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = appBackgroundColor,
+                    titleContentColor = appTextColor,
+                    navigationIconContentColor = appTextColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            "Back icon"
+                            "Back icon",
+                            tint = appTextColor
                         )
                     }
                 }
@@ -152,12 +160,12 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Tempi:", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
-                BulletPointText("Preparazione: ${formatTime(recipe.preparation)}")
+                Text(text = "Tempi:", color = appTextColor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
+                BulletPointText("Preparazione: ${formatTime(recipe.preparation)}", appTextColor)
                 if (recipe.waiting != null) {
-                    BulletPointText("Riposo: ${formatTime(recipe.waiting)}")
+                    BulletPointText("Riposo: ${formatTime(recipe.waiting)}", appTextColor)
                 }
-                BulletPointText("Cottura: ${formatTime(recipe.cooking)}")
+                BulletPointText("Cottura: ${formatTime(recipe.cooking)}", appTextColor)
             }
 
             Row(
@@ -166,7 +174,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl)}) {
-                    Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray)
+                    Icon(Icons.Default.Share, contentDescription = "Share", tint = appTextColor.copy(alpha = 0.6f))
                 }
                 IconButton(onClick = {
                     if (AuthState.isLoggedIn.value) {
@@ -179,20 +187,20 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite Icon",
                         modifier = Modifier.size(24.dp),
-                        tint = if (isFavorite) Color.Red else Color.Gray
+                        tint = if (isFavorite) Color.Red else appTextColor.copy(alpha = 0.6f)
                     )
                 }
             }
 
-            Text("Ingredienti", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(text = "Ingredienti", color = appTextColor, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
 
             Column(
                 modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xfff7ead0), shape = RoundedCornerShape(12.dp))
+                    .background(color = containerSectionColor, shape = RoundedCornerShape(12.dp))
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 recipe.ingredients.forEach { ingredient ->
-                    BulletPointText(ingredient.name + ": " + ingredient.quantity + " " + ingredient.unit)
+                    BulletPointText(ingredient.name + ": " + ingredient.quantity + " " + ingredient.unit, appTextColor)
                 }
             }
 
@@ -205,7 +213,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Procedimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "Procedimento", color = appTextColor, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Row(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
@@ -216,7 +224,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                                 imageVector = if (isSpeaking) Icons.Default.Pause else Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = if (isSpeaking) "Pause audio Icon" else "Play audio Icon",
                                 modifier = Modifier.size(24.dp),
-                                tint = Color.Gray
+                                tint = appTextColor.copy(alpha = 0.6f)
                             )
                         }
 
@@ -226,7 +234,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                                     imageVector = Icons.Default.Stop,
                                     contentDescription = "Stop audio Icon",
                                     modifier = Modifier.size(24.dp),
-                                    tint = Color.Gray
+                                    tint = appTextColor.copy(alpha = 0.6f)
                                 )
                             }
                         }
@@ -240,7 +248,8 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                     StepElem(step.number, isOpen, currentSpeakingId, stepAudioId,
                         { recipeViewModel.onStepStopButtonClick() },
                         { text, stepAudioId -> recipeViewModel.onStepPlayButtonClick(text, stepAudioId) },
-                        { recipeViewModel.actions.onToggleStep(step)}, step.description, step.imageUrls)
+                        { recipeViewModel.actions.onToggleStep(step)}, step.description, step.imageUrls,
+                        containerSectionColor, appTextColor)
                 }
             }
 
@@ -251,7 +260,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Lascia una recensione:", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Normal)
+                Text(text = "Lascia una recensione:", color = appTextColor, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Normal)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End,
@@ -285,7 +294,9 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 @Composable
 fun StepElem(number: Int, isOpen: Boolean,
              currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: (String, String) -> Unit,
-             onToggleStep: () -> Unit, description: String, imageUrls: List<String>) {
+             onToggleStep: () -> Unit, description: String, imageUrls: List<String>,
+             containerColor: Color,
+             textColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -294,24 +305,24 @@ fun StepElem(number: Int, isOpen: Boolean,
             Row(
                 modifier = Modifier.weight(1f)
                     .background(
-                        color = Color(0xfff7ead0),
+                        color = containerColor,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(start = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Passaggio $number", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
+                Text(text = "Passaggio $number", color = textColor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Normal)
                 IconButton(onClick =  onToggleStep ) {
                     Icon(
                         imageVector = if (isOpen) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
                         contentDescription = "Arrow Icon",
                         modifier = Modifier.size(24.dp),
-                        tint = Color.Gray
+                        tint = textColor.copy(alpha = 0.6f)
                     )
                 }
             }
-            StepAudioButton(currentSpeakingId, stepAudioId, onStop, {onPlay(description, stepAudioId)})
+            StepAudioButton(currentSpeakingId, stepAudioId, onStop, { onPlay(description, stepAudioId) }, textColor.copy(alpha = 0.6f))
         }
         if (isOpen) {
             if (imageUrls.isNotEmpty()) {
@@ -332,19 +343,19 @@ fun StepElem(number: Int, isOpen: Boolean,
                 }
             }
 
-            Text(text = description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
+            Text(text = description, color = textColor, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth())
         }
     }
 }
 
 @Composable
-fun StepAudioButton(currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: () -> Unit) {
+fun StepAudioButton(currentSpeakingId: String?, stepAudioId: String, onStop: () -> Unit, onPlay: () -> Unit, iconTint: Color) {
     IconButton(onClick = { if (currentSpeakingId == stepAudioId) onStop() else onPlay() }) {
         Icon(
             imageVector = if (currentSpeakingId == stepAudioId) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
             contentDescription = if (currentSpeakingId == stepAudioId) "Stop audio Icon" else "Play audio Icon",
             modifier = Modifier.size(24.dp),
-            tint = Color.Gray
+            tint = iconTint
         )
     }
 }
