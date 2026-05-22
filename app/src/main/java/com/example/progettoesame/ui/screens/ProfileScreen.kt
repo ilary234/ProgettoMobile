@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.progettoesame.R
@@ -519,7 +520,7 @@ fun ProfileRecipeCard(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl) }) {
+            IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl.toUri()) }) {
                 Icon(
                     imageVector = Icons.Default.Share,
                     contentDescription = "Condividi Ricetta",

@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
@@ -181,7 +182,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl)}) {
+                IconButton(onClick = { shareRecipe(ctx, recipe.title, recipe.previewImageUrl.toUri())}) {
                     Icon(Icons.Default.Share, contentDescription = "Share", tint = appTextColor.copy(alpha = 0.6f))
                 }
                 IconButton(onClick = {

@@ -48,11 +48,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
     val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by homeViewModel.searchResults.collectAsStateWithLifecycle()
 
-    val topBarTitle = if (isLoggedIn && !userEmail.isNullOrBlank()) {
-        userEmail!!
-    } else {
-        "NomeApp"
-    }
+    val topBarTitle = "Cuocinella"
 
     val isResetMode by AuthState.isResetPasswordMode
 

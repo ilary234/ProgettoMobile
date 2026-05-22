@@ -97,7 +97,7 @@ fun AuthScreenTemplate(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Nome App",
+                        text = "Cuocinella",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )

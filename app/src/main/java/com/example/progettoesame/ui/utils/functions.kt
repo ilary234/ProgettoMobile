@@ -7,21 +7,80 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.FileProvider
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 
-fun shareRecipe(context: Context, title: String, previewImageUrl: String) {
-    val link = "link della release di GitHub" //TODO
+fun shareRecipe(ctx: Context, title: String, previewImageUrl: Uri) {
+    val link = "https://github.com/ilary234/ProgettoMobile/releases/latest"
 
     val message = """
-        $previewImageUrl
         Prova questa ricetta: $title
+        
         Scarica l'app per vedere i dettagli: $link
     """.trimIndent()
 
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val loader =ImageLoader(ctx)
+            val request = ImageRequest.Builder(ctx)
+                .data(previewImageUrl)
+                .allowHardware(false)
+                .build()
+
+            val result = (loader.execute(request) as? SuccessResult)?.drawable
+            val bitmap = (result as? android.graphics.drawable.BitmapDrawable)?.bitmap
+
+            if (bitmap != null) {
+                val cachePath = File(ctx.cacheDir, "images")
+                cachePath.mkdirs()
+                val file = File(cachePath, "recipe_preview.jpg")
+                val stream = FileOutputStream(file)
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
+                stream.close()
+
+                val contentUri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, message)
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    putExtra(Intent.EXTRA_TITLE, title)
+                    type = "image/jpeg"
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                withContext(Dispatchers.Main) {
+                    val shareIntent = Intent.createChooser(sendIntent, "Condividi con:")
+                    shareIntent.clipData = android.content.ClipData.newRawUri("", contentUri)
+                    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    if (sendIntent.resolveActivity(ctx.packageManager) != null) {
+                        ctx.startActivity(shareIntent)
+                    }
+                }
+            } else {
+                withContext(Dispatchers.Main) { shareTextOnly(ctx, message) }
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) { shareTextOnly(ctx, message) }
+        }
+    }
+}
+
+private fun shareTextOnly(ctx: Context, message: String) {
     val sendIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)
@@ -29,8 +88,8 @@ fun shareRecipe(context: Context, title: String, previewImageUrl: String) {
     }
 
     val shareIntent = Intent.createChooser(sendIntent, "Condividi con:")
-    if (sendIntent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(shareIntent)
+    if (sendIntent.resolveActivity(ctx.packageManager) != null) {
+        ctx.startActivity(shareIntent)
     }
 }
 
