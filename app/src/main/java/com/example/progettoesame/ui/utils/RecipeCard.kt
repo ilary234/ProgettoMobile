@@ -25,14 +25,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.progettoesame.R // pacchetto probabilmente da modificare
 import com.example.progettoesame.data.database.Recipe
-import com.example.progettoesame.ui.NavigationRoute
-import java.util.Locale
-import kotlin.math.roundToInt
 
 @Composable
-fun RecipeCard(textColor: Color, imageUrl: String, title: String, rating: Double, time: String, isFavorite: Boolean, onCardClick: () -> Unit, onFavoriteClick: () -> Unit) {
-    val roundedRating = (rating * 10).roundToInt() / 10.0
-    val formattedRating = String.format(Locale.US, "%.1f", roundedRating)
+fun RecipeCard(textColor: Color, imageUrl: String, title: String, rating: Float, time: String, isFavorite: Boolean, onCardClick: () -> Unit, onFavoriteClick: () -> Unit) {
+    val roundedRating = getRoundedRating(rating)
+    val formattedRating = formatRating(roundedRating)
 
     Column(
         modifier = Modifier
@@ -196,30 +193,40 @@ fun InfoPreview(title: String, time: String, rating: Float, textColor: Color) {
             style = MaterialTheme.typography.bodySmall,
             color = textColor.copy(alpha = 0.7f)
         )
-        RatingRow(rating)
+        RatingRow(rating, textColor)
     }
 }
 
 @Composable
-fun RatingRow(rating: Float) {
+fun RatingRow(rating: Float, textColor: Color) {
+    val roundedRating = getRoundedRating(rating)
+    val formattedRating = formatRating(roundedRating)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 4.dp)
     ) {
         repeat(5) { index ->
-            val active = index < rating.toInt()
+            val starIndex = index + 1
+            val icon = when {
+                roundedRating >= starIndex -> Icons.Default.Star
+                roundedRating >= starIndex - 0.75 -> Icons.AutoMirrored.Outlined.StarHalf
+                else -> Icons.Outlined.StarBorder
+            }
+            val tint = if (rating >= starIndex - 0.75) Color(0xFFFFB400) else textColor.copy(alpha = 0.3f)
+
             Icon(
-                imageVector = if (active) Icons.Default.Star else Icons.Outlined.StarBorder,
+                imageVector = icon,
                 contentDescription = null,
-                tint = if (active) Color(0xFFFFB400) else Color.LightGray,
-                modifier = Modifier.size(16.dp)
+                tint = tint,
+                modifier = Modifier.size(14.dp)
             )
         }
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = rating.toString(),
+            text = formattedRating,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
+            color = textColor.copy(alpha = 0.6f),
             fontSize = 12.sp
         )
     }

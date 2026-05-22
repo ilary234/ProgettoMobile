@@ -23,7 +23,6 @@ class UserRepository(private val userDAO: UserDAO, private val recipeDAO: Recipe
         return updatedUser
     }
 
-    //funzione per aggiornare l'average_rating dello user (da capire se è da togliere)
     suspend fun updateUserAverageRating(userId: String): User? {
         val currentUser = userDAO.getUserById(userId) ?: return null
 
@@ -57,25 +56,4 @@ class UserRepository(private val userDAO: UserDAO, private val recipeDAO: Recipe
         return updatedUser
     }
 
-    //funzione per aggiornare l'average_rating della ricetta (da capire se è da togliere)
-    suspend fun recalculateRecipeAverage(recipeId: String): Recipe {
-        val totalRatings = userRatedDAO.countValidRatingsForRecipe(recipeId)
-
-        val sumOfRatings = userRatedDAO.getSumOfRatingsForRecipe(recipeId) ?: 0
-
-        val newAverage = if (totalRatings > 0) {
-            sumOfRatings.toFloat() / totalRatings
-        } else {
-            0.0f
-        }
-
-        val currentRecipe = recipeDAO.getRecipe(recipeId)
-        val updatedRecipe = currentRecipe.copy(
-            averageRating = newAverage,
-            isSynced = false,
-            updatedAt = getFormattedTimeStamp()
-        )
-        recipeDAO.upsert(updatedRecipe)
-        return updatedRecipe
-    }
 }

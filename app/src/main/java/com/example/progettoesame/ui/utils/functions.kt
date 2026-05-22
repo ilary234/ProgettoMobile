@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToInt
 
 fun shareRecipe(context: Context, title: String, previewImageUrl: String) {
     val link = "link della release di GitHub" //TODO
@@ -42,6 +44,13 @@ fun formatTime(time: Int) : String {
         else -> "${hours} h ${minutes} min"
     }
     return formattedTime
+}
+
+fun getRoundedRating(rating: Float): Double {
+    return (rating * 10).roundToInt() / 10.0
+}
+fun formatRating(roundedRating: Double): String {
+    return String.format(Locale.US, "%.1f", roundedRating)
 }
 
 fun getFormattedTimeStamp() : String {

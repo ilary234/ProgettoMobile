@@ -17,7 +17,7 @@ class RecipeRepository(private val recipeDAO: RecipeDAO,
     suspend fun upsertRecipe(recipe: Recipe) = recipeDAO.upsert(recipe)
     suspend fun getAuthor(userId: String): String = userDAO.getAuthor(userId)
     suspend fun isFavorite(recipeId: String, userId: String): Boolean = userFavouriteDAO.isFavorite(recipeId, userId)
-    suspend fun getRating(recipeId: String, userId: String): Int? = userRatedDAO.getRating(recipeId, userId)
+    suspend fun getRating(recipeId: String, userId: String): Int? = userRatedDAO.getRating(userId, recipeId)
     suspend fun setFavorite(recipeId: String, userId: String) = userFavouriteDAO.upsert(
         UserFavourite(userId, recipeId, getFormattedTimeStamp(), false, false))
     suspend fun deleteFavorite(recipeId: String, userId: String) = userFavouriteDAO.upsert(

@@ -195,7 +195,7 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
                                                 textColor = appTextColor,
                                                 imageUrl = recipe.previewImageUrl,
                                                 title = recipe.title,
-                                                rating = recipe.averageRating.toDouble(),
+                                                rating = recipe.averageRating,
                                                 time = formatTime(totalTime),
                                                 isFavorite = isFavorite,
                                                 onCardClick = {

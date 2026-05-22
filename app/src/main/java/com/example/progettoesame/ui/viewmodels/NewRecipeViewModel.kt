@@ -281,7 +281,6 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                 if (recipeId == null) {
                     userRepository.upsertUser(
                         author.copy(
-                            averageRating = ((author.averageRating * author.recipeNumber) + recipe.averageRating) / (author.recipeNumber + 1),
                             recipeNumber = author.recipeNumber + 1,
                             isSynced = false,
                             updatedAt = getFormattedTimeStamp()

@@ -4,11 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.Step
 import com.example.progettoesame.data.repositories.RecipeRepository
+import com.example.progettoesame.data.repositories.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -23,7 +25,7 @@ data class RecipeActions (
     val onRate: (String, String, Int) -> Unit,
     val onToggleStep: (Step) -> Unit
 )
-class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
+class RecipeViewModel(private val recipeRepository: RecipeRepository, private val userRepository: UserRepository): ViewModel() {
     private var tts: TextToSpeech? = null
     private var orderedSteps : List<Step> = emptyList()
 
@@ -126,8 +128,8 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
 
     fun fetchRecipe(recipeId: String) {
         viewModelScope.launch {
-            val recipe = repository.getRecipe(recipeId)
-            val author = repository.getAuthor(recipe.author)
+            val recipe = recipeRepository.getRecipe(recipeId)
+            val author = recipeRepository.getAuthor(recipe.author)
             _recipe.value = RecipeData(recipe, author)
             _stepsState.value = StepState(_recipe.value?.recipe?.steps?.associateWith { false } ?: emptyMap())
             orderedSteps = recipe.steps.sortedBy { it.number }
@@ -136,8 +138,8 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
 
     fun getUserRecipeData(recipeId: String, userId: String) {
         viewModelScope.launch {
-            _isFavorite.value = repository.isFavorite(recipeId, userId)
-            _rate.value = repository.getRating(recipeId, userId) ?: 0
+            _isFavorite.value = recipeRepository.isFavorite(recipeId, userId)
+            _rate.value = recipeRepository.getRating(recipeId, userId) ?: 0
         }
     }
 
@@ -151,25 +153,36 @@ class RecipeViewModel(private val repository: RecipeRepository): ViewModel() {
     val actions = RecipeActions(
         onFavorite = { recipeId, userId -> viewModelScope.launch {
             if (_isFavorite.value) {
-                repository.deleteFavorite(recipeId, userId)
+                recipeRepository.deleteFavorite(recipeId, userId)
             } else {
-                repository.setFavorite(recipeId, userId)
+                recipeRepository.setFavorite(recipeId, userId)
             }
             _isFavorite.value = !_isFavorite.value
         }},
         onRate = { recipeId, userId, rating -> viewModelScope.launch {
+            val currentRecipe = _recipe.value?.recipe ?: return@launch
+            val numberOfRatings = recipeRepository.getNumberOfRatings(recipeId)
+            val currentSum = currentRecipe.averageRating * numberOfRatings
+            val newAverage = when (_rate.value) {
+                0 -> (currentSum + rating) / (numberOfRatings + 1)
+                rating -> {
+                    if (numberOfRatings <= 1) 0.0
+                    else (currentSum - rating) / (numberOfRatings - 1)
+                }
+                else -> (currentSum + rating - _rate.value) / numberOfRatings
+            }
+
+            val updatedRecipe = currentRecipe.copy(averageRating = newAverage.toFloat())
             if (_rate.value != rating) {
-                val currentRecipe = _recipe.value?.recipe ?: return@launch
-                val numberOfRatings = repository.getNumberOfRatings(recipeId)
-                val updatedRecipe = currentRecipe.copy(averageRating = ((currentRecipe.averageRating * numberOfRatings) + rating) / (numberOfRatings + 1))
-                repository.updateRating(recipeId, userId, rating)
-                repository.upsertRecipe(updatedRecipe)
-                _recipe.value = _recipe.value?.copy(recipe = updatedRecipe)
+                recipeRepository.updateRating(recipeId, userId, rating)
                 _rate.value = rating
             } else {
-                repository.deleteRating(recipeId, userId)
+                recipeRepository.deleteRating(recipeId, userId)
                 _rate.value = 0
             }
+            recipeRepository.upsertRecipe(updatedRecipe)
+            _recipe.value = _recipe.value?.copy(recipe = updatedRecipe)
+            userRepository.updateUserAverageRating(updatedRecipe.author)
         }},
         onToggleStep = { step -> viewModelScope.launch {
             invertStepState(step)
