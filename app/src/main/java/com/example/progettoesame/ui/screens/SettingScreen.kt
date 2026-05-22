@@ -25,7 +25,7 @@ import com.example.progettoesame.ui.utils.AppPastelColor
 import com.example.progettoesame.ui.utils.Theme
 import com.example.progettoesame.ui.viewmodels.SettingViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingScreen(navController: NavHostController, settingViewModel: SettingViewModel) {
     val isDarkTheme = AppTheme.isDark
