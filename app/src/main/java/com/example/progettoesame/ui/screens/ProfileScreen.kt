@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.ModeEdit
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -386,11 +387,12 @@ fun ProfileScreen(
                                         recipe = entry.key,
                                         isFavorite = entry.value,
                                         showDeleteButton = true,
+                                        showModifyButton = true,
                                         containerColor = containerSectionColor,
                                         textColor = appTextColor,
                                         onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
-                                        onFavoriteClick = { profileViewModel.actions.onFavorite(entry.key) },
-                                        onDeleteClick = { profileViewModel.actions.onDelete(entry.key) }
+                                        onDeleteClick = { profileViewModel.actions.onDelete(entry.key) },
+                                        onModifyClick = { navController.navigate(NavigationRoute.NewRecipe(entry.key.recipeId)) }
                                     )
                                 }
                             }
@@ -404,11 +406,13 @@ fun ProfileScreen(
                                         recipe = entry.key,
                                         isFavorite = entry.value,
                                         showDeleteButton = isMyOwnRecipe,
+                                        showModifyButton = isMyOwnRecipe,
                                         containerColor = containerSectionColor,
                                         textColor = appTextColor,
                                         onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
                                         onFavoriteClick = { profileViewModel.actions.onFavorite(entry.key) },
-                                        onDeleteClick = { profileViewModel.actions.onDelete(entry.key) }
+                                        onDeleteClick = { profileViewModel.actions.onDelete(entry.key) },
+                                        onModifyClick = { navController.navigate(NavigationRoute.NewRecipe(entry.key.recipeId)) }
                                     )
                                 }
                             }
@@ -419,6 +423,7 @@ fun ProfileScreen(
                                 recipe = entry.key,
                                 isFavorite = entry.value,
                                 showDeleteButton = false,
+                                showModifyButton = false,
                                 containerColor = containerSectionColor,
                                 textColor = appTextColor,
                                 onCardClick = { navController.navigate(NavigationRoute.RecipeDetails(entry.key.recipeId)) },
@@ -443,11 +448,13 @@ fun ProfileRecipeCard(
     recipe: Recipe,
     isFavorite: Boolean,
     showDeleteButton: Boolean,
+    showModifyButton: Boolean,
     containerColor: Color,
     textColor: Color,
     onCardClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
-    onDeleteClick: () -> Unit = {}
+    onFavoriteClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onModifyClick: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
     val totalTime = recipe.preparation + recipe.cooking + (recipe.waiting ?: 0)
@@ -540,13 +547,24 @@ fun ProfileRecipeCard(
                 }
             }
 
-            IconButton(onClick = onFavoriteClick) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Stato Preferiti",
-                    tint = if (isFavorite) Color.Red else textColor.copy(alpha = 0.6f),
-                    modifier = Modifier.size(24.dp)
-                )
+            if (showModifyButton) {
+                IconButton(onClick = onModifyClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.ModeEdit,
+                        contentDescription = "Modifica Ricetta",
+                        tint = textColor.copy(alpha = 0.6f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            } else {
+                IconButton(onClick = onFavoriteClick) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Stato Preferiti",
+                        tint = if (isFavorite) Color.Red else textColor.copy(alpha = 0.6f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }

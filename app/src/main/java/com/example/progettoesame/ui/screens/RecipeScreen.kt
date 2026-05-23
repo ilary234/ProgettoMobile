@@ -262,40 +262,50 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
                 }
             }
 
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Lascia una recensione:", color = appTextColor, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Normal)
+            if (!AuthState.isLoggedIn.value || (AuthState.isLoggedIn.value && recipe.author != AuthState.userId.value!!)) {
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    repeat(5) { index ->
-                        val active = index < rating
-                        IconButton(
-                            modifier = Modifier.size(20.dp),
-                            onClick = {
-                            if (AuthState.isLoggedIn.value) {
-                                recipeViewModel.actions.onRate(recipe.recipeId, AuthState.userId.value!!, index + 1)
-                            } else {
-                                showDialog = true
-                            }}) {
-                            Icon(
-                                imageVector = if (active) Icons.Default.Star else Icons.Outlined.StarBorder,
-                                contentDescription = null,
-                                tint = if (active) Color(0xFFFFB400) else Color.LightGray,
-                                modifier = Modifier.size(16.dp)
-                            )
+                    Text(
+                        text = "Lascia una recensione:",
+                        color = appTextColor,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        repeat(5) { index ->
+                            val active = index < rating
+                            IconButton(
+                                modifier = Modifier.size(20.dp),
+                                onClick = {
+                                    if (AuthState.isLoggedIn.value) {
+                                        recipeViewModel.actions.onRate(
+                                            recipe.recipeId,
+                                            AuthState.userId.value!!,
+                                            index + 1
+                                        )
+                                    } else {
+                                        showDialog = true
+                                    }
+                                }) {
+                                Icon(
+                                    imageVector = if (active) Icons.Default.Star else Icons.Outlined.StarBorder,
+                                    contentDescription = null,
+                                    tint = if (active) Color(0xFFFFB400) else Color.LightGray,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
-
         }
     }
 }
