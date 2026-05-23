@@ -1,15 +1,18 @@
 package com.example.progettoesame.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.data.repositories.ProfileRepository
 import com.example.progettoesame.data.repositories.RecipeRepository
+import com.example.progettoesame.data.repositories.SyncRepository
 import com.example.progettoesame.data.repositories.UserRepository
 import com.example.progettoesame.ui.utils.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ProfileActions(
@@ -20,7 +23,8 @@ data class ProfileActions(
 class ProfileViewModel(
     private val profileRepository: ProfileRepository,
     private val userRepository: UserRepository,
-    private val recipeRepository: RecipeRepository
+    private val recipeRepository: RecipeRepository,
+    private val syncRepository: SyncRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -70,10 +74,19 @@ class ProfileViewModel(
         }
     }
 
-    fun updateProfileImage(userId: String, imageUrl: String?) {
+    fun updateProfileImage(ctx: Context, userId: String, imageUrl: String?) {
         viewModelScope.launch {
-            val updatedUser = userRepository.updateProfileImage(userId, imageUrl)
+            _isLoading.value = true
+            val updatedPreviewUri = when (imageUrl) {
+                null -> null
+                else -> syncRepository.updateImageStorageUrl(ctx, imageUrl) ?: return@launch
+            }
+            if (updatedPreviewUri == null && _user.value?.profileImageUrl!!.startsWith("http")) {
+                syncRepository.deleteImage(_user.value?.profileImageUrl!!)
+            }
+            val updatedUser = userRepository.updateProfileImage(userId, updatedPreviewUri)
             _user.value = updatedUser
+            _isLoading.value = false
         }
     }
 

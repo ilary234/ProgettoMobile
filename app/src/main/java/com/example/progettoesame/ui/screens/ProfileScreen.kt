@@ -80,14 +80,14 @@ fun ProfileScreen(
 
     val pickMediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-            profileViewModel.updateProfileImage(userId, uri.toString())
+            profileViewModel.updateProfileImage(ctx, userId, uri.toString())
         }
     }
 
     val takePhotoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { pictureTaken ->
         if (pictureTaken) {
             cameraUri?.let { uri ->
-                profileViewModel.updateProfileImage(userId, uri.toString())
+                profileViewModel.updateProfileImage(ctx, userId, uri.toString())
             }
         }
     }
@@ -237,7 +237,7 @@ fun ProfileScreen(
                                         .offset(x = 2.dp, y = 2.dp)
                                         .background(MaterialTheme.colorScheme.error, shape = CircleShape)
                                         .clickable {
-                                            profileViewModel.updateProfileImage(userId, null)
+                                            profileViewModel.updateProfileImage(ctx, userId, null)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {

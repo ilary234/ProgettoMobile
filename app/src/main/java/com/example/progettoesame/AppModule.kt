@@ -91,7 +91,7 @@ val appModule = module {
     viewModel { SettingViewModel(get(), get()) }
     viewModel { SplashViewModel(get()) }
     viewModel { HomeViewModel(get(), get()) }
-    viewModel { ProfileViewModel(get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get(), get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
     viewModel { RecipeViewModel(get(), get()) }

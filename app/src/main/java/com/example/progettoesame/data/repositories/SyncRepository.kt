@@ -1,7 +1,9 @@
 package com.example.progettoesame.data.repositories
 
 
+import android.content.Context
 import android.util.Log
+import androidx.core.net.toUri
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.data.database.UserFavourite
@@ -15,6 +17,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
@@ -98,6 +101,24 @@ class SyncRepository(private val recipeDAO: RecipeDAO,
             }
         } catch (e: Exception) {
             Log.e("Sync", "Errore durante la pull", e)
+        }
+    }
+
+    suspend fun updateImageStorageUrl(ctx: Context, uriString: String) : String? {
+        if (uriString.startsWith("http")) return uriString
+        return try {
+            val uri = uriString.toUri()
+            val inputStream = ctx.contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+
+            if (bytes != null) {
+                val fileName = "${UUID.randomUUID()}.jpg"
+                uploadImage(fileName, bytes)
+            } else null
+        } catch (e: Exception) {
+            Log.e("Sync", "Errore durante l'upload", e)
+            null
         }
     }
 

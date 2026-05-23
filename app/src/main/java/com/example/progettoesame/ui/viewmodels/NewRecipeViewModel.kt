@@ -183,24 +183,6 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
 
     )
 
-    private suspend fun updateImageStorageUrl(ctx: Context, uriString: String) : String? {
-        if (uriString.startsWith("http")) return uriString
-        return try {
-            val uri = uriString.toUri()
-            val inputStream = ctx.contentResolver.openInputStream(uri)
-            val bytes = inputStream?.readBytes()
-            inputStream?.close()
-
-            if (bytes != null) {
-                val fileName = "${UUID.randomUUID()}.jpg"
-                syncRepository.uploadImage(fileName, bytes)
-            } else null
-        } catch (e: Exception) {
-            Log.e("NewRecipeViewModel", "Image upload failed", e)
-            null
-        }
-    }
-
     fun saveRecipe(ctx: Context){
         viewModelScope.launch {
             _isRefreshing.value = true
@@ -220,7 +202,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
                 }
 
 
-                val updatedPreviewUri = updateImageStorageUrl(ctx, _state.value.previewImageUrl!!)
+                val updatedPreviewUri = syncRepository.updateImageStorageUrl(ctx, _state.value.previewImageUrl!!)
                 if (updatedPreviewUri == null) {
                     _isRefreshing.value = false
                     _errorMessage.update { "C'è stato un errore durante il caricamento delle immagini. Assicurati di essere connesso ad internet e riprova." }
@@ -230,7 +212,7 @@ class NewRecipeViewModel(private val recipeRepository: RecipeRepository,
 
                 _state.value.steps.forEach {
                     it.imageUrls.forEachIndexed { i, uri ->
-                        val updatedImageUri = updateImageStorageUrl(ctx, uri)
+                        val updatedImageUri = syncRepository.updateImageStorageUrl(ctx, uri)
                         if (updatedImageUri == null) {
                             _isRefreshing.value = false
                             _errorMessage.update { "C'è stato un errore durante il caricamento delle immagini. Assicurati di essere connesso ad internet e riprova."}
