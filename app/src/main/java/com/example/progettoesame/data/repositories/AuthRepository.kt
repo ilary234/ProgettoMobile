@@ -1,5 +1,6 @@
 package com.example.progettoesame.data.repositories
 
+import android.util.Patterns
 import com.example.progettoesame.data.database.daos.UserDAO
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.ui.utils.AuthState
@@ -37,7 +38,7 @@ class AuthRepository(private val supabase: SupabaseClient, private val userDAO: 
             throw Exception("La password deve contenere almeno 6 caratteri")
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             throw Exception("Inserisci un indirizzo email valido")
         }
 
@@ -72,6 +73,18 @@ class AuthRepository(private val supabase: SupabaseClient, private val userDAO: 
             put("username", username)
             put("email", email)
         })
+
+        val newUser = User(
+            userId = userId,
+            username = username,
+            email = email,
+            recipeNumber = 0,
+            averageRating = 0f,
+            isSynced = true,
+            updatedAt = getFormattedTimeStamp(),
+            profileImageUrl = null
+        )
+        userDAO.upsert(newUser)
     }
 
     suspend fun login(email: String, pass: String) {
