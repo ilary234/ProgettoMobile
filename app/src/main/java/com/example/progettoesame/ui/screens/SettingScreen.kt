@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,9 +19,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AppPastelColor
 import com.example.progettoesame.ui.utils.Theme
 import com.example.progettoesame.ui.viewmodels.SettingViewModel
@@ -28,13 +29,15 @@ import com.example.progettoesame.ui.viewmodels.SettingViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingScreen(navController: NavHostController, settingViewModel: SettingViewModel) {
-    val isDarkTheme = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
+    val themeState by settingViewModel.state.collectAsStateWithLifecycle()
 
-    val appBackgroundColor = if (isDarkTheme) Color.Black else Color.White
-    val appTextColor = if (isDarkTheme) Color.White else Color.Black
-    val containerSectionColor = if (isDarkTheme) currentPastel.darkColor else currentPastel.lightColor
-    val surfaceColor = if (isDarkTheme) currentPastel.lightColor else currentPastel.darkColor
+    val isDarkTheme = themeState.theme == Theme.Dark
+    val currentPastel = themeState.pastelColor
+
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     Scaffold(
         containerColor = appBackgroundColor,
@@ -167,20 +170,20 @@ fun SettingScreen(navController: NavHostController, settingViewModel: SettingVie
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            FlowRow(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                maxItemsInEachRow = 4
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 AppPastelColor.entries.forEach { pastelEnum ->
                     val isSelected = currentPastel == pastelEnum
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(75.dp)
+                            .weight(1f)
+                            .aspectRatio(1f)
                             .clip(CircleShape)
-                            .background(if (isDarkTheme) pastelEnum.darkColor else pastelEnum.lightColor) //da eliminare se non piace a ila
+                            .background(if (isDarkTheme) pastelEnum.darkColor else pastelEnum.lightColor)
                             .border(
                                 width = if (isSelected) 3.dp else 1.dp,
                                 color = if (isSelected) appTextColor else Color.LightGray,
@@ -195,7 +198,7 @@ fun SettingScreen(navController: NavHostController, settingViewModel: SettingVie
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Selezionato",
                                 tint = Color.Black,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.fillMaxSize(0.3f)
                             )
                         }
                     }

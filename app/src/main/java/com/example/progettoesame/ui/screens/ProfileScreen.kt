@@ -40,7 +40,6 @@ import coil.compose.AsyncImage
 import com.example.progettoesame.R
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.createImageUriInGallery
@@ -56,7 +55,7 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel,
     userId: String
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     val userRecipesLazyState = rememberLazyListState()
     val favoriteRecipesLazyState = rememberLazyListState()
@@ -74,12 +73,9 @@ fun ProfileScreen(
     var showImagePickerDialog by remember { mutableStateOf(false) }
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    val isDark = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
 
     val handleBackNavigation = {
         if (isRecipeDeleted) {
@@ -165,7 +161,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = "Profilo", color = appTextColor, fontWeight = FontWeight.SemiBold, fontSize = 20.sp) },
+                title = { Text(text = "Profilo", color = appTextColor, fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { handleBackNavigation() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Indietro", tint = appTextColor)
@@ -316,8 +312,6 @@ fun ProfileScreen(
                     )
 
                     if (isOwnProfile) {
-                        val activeTabBg = if (isDark) Color.Black else Color.White
-                        val activeTabTxt = if (isDark) Color.White else Color.Black
                         val inactiveTabTxt = appTextColor.copy(alpha = 0.6f)
 
                         Row(
@@ -333,14 +327,14 @@ fun ProfileScreen(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(if (selectedTab == 0) activeTabBg else Color.Transparent)
+                                    .background(if (selectedTab == 0) appBackgroundColor else Color.Transparent)
                                     .clickable { selectedTab = 0 },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     "Le mie ricette",
                                     fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == 0) activeTabTxt else inactiveTabTxt,
+                                    color = if (selectedTab == 0) appTextColor else inactiveTabTxt,
                                     fontSize = 14.sp
                                 )
                             }
@@ -349,14 +343,14 @@ fun ProfileScreen(
                                     .weight(1f)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(if (selectedTab == 1) activeTabBg else Color.Transparent)
+                                    .background(if (selectedTab == 1) appBackgroundColor else Color.Transparent)
                                     .clickable { selectedTab = 1 },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     "Preferiti",
                                     fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == 1) activeTabTxt else inactiveTabTxt,
+                                    color = if (selectedTab == 1) appTextColor else inactiveTabTxt,
                                     fontSize = 14.sp
                                 )
                             }
@@ -530,7 +524,7 @@ fun ProfileRecipeCard(
                     )
                 }
                 Spacer(modifier = Modifier.width(4.dp))
-                val formattedRating = String.format(java.util.Locale.US, "%.1f", recipe.averageRating)
+                val formattedRating = String.format(Locale.US, "%.1f", recipe.averageRating)
                 Text(
                     text = formattedRating,
                     style = MaterialTheme.typography.bodySmall,

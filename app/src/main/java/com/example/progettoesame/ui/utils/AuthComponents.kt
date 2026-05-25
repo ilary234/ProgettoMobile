@@ -62,7 +62,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progettoesame.R
-import com.example.progettoesame.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,13 +83,11 @@ fun AuthScreenTemplate(
     var username by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val isDark = AppTheme.isDark
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val appGrayColor = if (isDark) Color(0x99FFFFFF) else Color.Gray
-    val dividerColor = if (isDark) Color(0xFF303030) else Color(0xFFE0E0E0)
-    val socialBtnColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF2F2F2)
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val appGrayColor = MaterialTheme.colorScheme.outline
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant
+    val socialBtnColor = MaterialTheme.colorScheme.surfaceContainer
 
     Scaffold(
         topBar = {
@@ -152,7 +149,7 @@ fun AuthScreenTemplate(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             OutlinedTextField(
                 value = password,
@@ -170,7 +167,7 @@ fun AuthScreenTemplate(
             )
 
             if (isSignUp) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
@@ -199,11 +196,11 @@ fun AuthScreenTemplate(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Button(
                 onClick = { onButtonClick(email, password, username) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = appTextColor,
@@ -217,7 +214,7 @@ fun AuthScreenTemplate(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = dividerColor)
@@ -225,7 +222,7 @@ fun AuthScreenTemplate(
                 HorizontalDivider(modifier = Modifier.weight(1f), color = dividerColor)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             SocialLoginButton(
                 text = "Continua con Google",
@@ -239,11 +236,11 @@ fun AuthScreenTemplate(
 
             LegalText(primaryColor = appTextColor, secondaryColor = appGrayColor)
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.5f))
 
             Text(
                 text = footerText,
-                modifier = Modifier.padding(bottom = 32.dp).clickable { onFooterClick() },
+                modifier = Modifier.padding(bottom = 16.dp).clickable { onFooterClick() },
                 color = appTextColor
             )
         }

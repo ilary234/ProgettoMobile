@@ -75,7 +75,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.utils.PreviewCard
 import com.example.progettoesame.ui.utils.TimeType
@@ -96,12 +95,9 @@ fun NewRecipeScreen(navController: NavController, newRecipeViewModel: NewRecipeV
 
     val ctx = LocalContext.current
 
-    val isDark = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
 
     LaunchedEffect(errorMessage) {
         if (errorMessage != null) {

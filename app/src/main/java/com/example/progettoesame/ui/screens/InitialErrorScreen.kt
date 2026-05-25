@@ -15,13 +15,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.viewmodels.InitialErrorViewModel
 import kotlinx.coroutines.delay
 
@@ -29,9 +27,8 @@ import kotlinx.coroutines.delay
 fun InitialErrorScreen(navController: NavHostController, initialErrorViewModel: InitialErrorViewModel) {
     val isReady by initialErrorViewModel.isReady.collectAsStateWithLifecycle()
 
-    val isDark = AppTheme.isDark
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
 
     LaunchedEffect(isReady) {
         if (isReady) {

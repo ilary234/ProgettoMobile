@@ -12,11 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.FeedbackBanner
 import com.example.progettoesame.ui.viewmodels.AuthViewModel
@@ -39,10 +37,8 @@ fun EditProfileScreen(
 
     var isDataLoaded by remember { mutableStateOf(false) }
 
-    val isDark = AppTheme.isDark
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
 
     LaunchedEffect(Unit) {
         authViewModel.getUsername()

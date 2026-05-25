@@ -14,6 +14,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -25,13 +26,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.RecipePreviewCard
@@ -49,12 +48,9 @@ fun CategoryScreen(
     val isRefreshing by categoryViewModel.isRefreshing.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 
-    val isDark = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
 
     val onRefresh: () -> Unit = {
         categoryViewModel.syncAndFetchRecipes(AuthState.userId.value, categoryId)

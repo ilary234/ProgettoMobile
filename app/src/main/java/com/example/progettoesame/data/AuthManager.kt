@@ -32,7 +32,7 @@ class AuthManager(private val supabase: SupabaseClient) {
                                     .select { filter { eq("user_id", user.id) } }
                                     .decodeSingleOrNull<JsonObject>()
                                 userRow?.get("username")?.toString()?.replace("\"", "")
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 null
                             }
 

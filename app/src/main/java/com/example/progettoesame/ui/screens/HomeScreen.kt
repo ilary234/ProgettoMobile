@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.LoginRequiredDialog
 import com.example.progettoesame.ui.utils.RecipeCard
@@ -43,7 +42,6 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
     var showLoginDialog by remember { mutableStateOf(false) }
     val isLoggedIn by AuthState.isLoggedIn
-    val userEmail by AuthState.userEmail
 
     val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by homeViewModel.searchResults.collectAsStateWithLifecycle()
@@ -52,12 +50,9 @@ fun HomeScreen(navController: NavHostController, homeViewModel: HomeViewModel)  
 
     val isResetMode by AuthState.isResetPasswordMode
 
-    val isDark = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
 
     if (showLoginDialog) {
         LoginRequiredDialog(
@@ -279,7 +274,7 @@ fun HomeTopBar(text: String, onMenuClick: () -> Unit, onProfileClick: () -> Unit
     ) {
         CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
-            title = { Text(text = text, color = textColor, fontWeight = FontWeight.SemiBold) },
+            title = { Text(text = text, color = textColor, fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onMenuClick) {
                     Icon(Icons.Default.Menu, contentDescription = "Menu", tint = textColor)

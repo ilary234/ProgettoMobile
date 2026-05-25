@@ -20,7 +20,6 @@ class ProfileRepository(
             updatedAt = timestamp
         )
         recipeDAO.upsert(deletedRecipe)
-        //da capire se è da tenere
         userFavouriteDAO.softDeleteFavoritesByRecipe(recipe.recipeId, timestamp)
     }
 }

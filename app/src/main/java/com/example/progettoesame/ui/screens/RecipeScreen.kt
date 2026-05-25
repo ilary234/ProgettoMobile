@@ -48,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -58,7 +57,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.progettoesame.ui.NavigationRoute
-import com.example.progettoesame.ui.theme.AppTheme
 import com.example.progettoesame.ui.utils.AuthState
 import com.example.progettoesame.ui.utils.BulletPointText
 import com.example.progettoesame.ui.utils.formatTime
@@ -81,12 +79,9 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 
     val ctx = LocalContext.current
 
-    val isDark = AppTheme.isDark
-    val currentPastel = AppTheme.pastelColor
-
-    val appBackgroundColor = if (isDark) Color.Black else Color.White
-    val appTextColor = if (isDark) Color.White else Color.Black
-    val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+    val appBackgroundColor = MaterialTheme.colorScheme.background
+    val appTextColor = MaterialTheme.colorScheme.onBackground
+    val containerSectionColor = MaterialTheme.colorScheme.surface
 
     LaunchedEffect(recipeId) {
         recipeViewModel.fetchRecipe(recipeId)

@@ -6,38 +6,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.progettoesame.ui.utils.AppPastelColor
-
-val LocalAppIsDark = staticCompositionLocalOf { false }
-val LocalAppPastelColor = staticCompositionLocalOf { AppPastelColor.CREMA }
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
 
 @Composable
 fun ProgettoEsameTheme(
@@ -45,7 +19,27 @@ fun ProgettoEsameTheme(
     pastelColor: AppPastelColor = AppPastelColor.CREMA,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            background = Color.Black,
+            onBackground = Color.White,
+            surface = pastelColor.darkColor,
+            surfaceVariant = pastelColor.lightColor,
+            outline = Color(0x99FFFFFF),
+            outlineVariant = Color(0xFF303030),
+            surfaceContainer = Color(0xFF1E1E1E)
+        )
+    } else {
+        lightColorScheme(
+            background = Color.White,
+            onBackground = Color.Black,
+            surface = pastelColor.lightColor,
+            surfaceVariant = pastelColor.darkColor,
+            outline = Color.Gray,
+            outlineVariant = Color(0xFFE0E0E0),
+            surfaceContainer = Color(0xFFF2F2F2)
+        )
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -56,24 +50,9 @@ fun ProgettoEsameTheme(
         }
     }
 
-    CompositionLocalProvider(
-        LocalAppIsDark provides darkTheme,
-        LocalAppPastelColor provides pastelColor
-    ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            content = content
-        )
-    }
-}
-
-object AppTheme {
-    val isDark: Boolean
-        @Composable
-        get() = LocalAppIsDark.current
-
-    val pastelColor: AppPastelColor
-        @Composable
-        get() = LocalAppPastelColor.current
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
 }

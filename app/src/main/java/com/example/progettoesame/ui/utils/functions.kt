@@ -130,7 +130,7 @@ fun createImageUriInGallery(ctx: Context) : Uri? {
 }
 
 
-object AuthState { //per utilizzare il valore nelle varie classi bisogna scrivere AuthState.isLoggedIn.value
+object AuthState {
     private val _isLoggedIn = mutableStateOf(false)
     val isLoggedIn: State<Boolean> = _isLoggedIn
 

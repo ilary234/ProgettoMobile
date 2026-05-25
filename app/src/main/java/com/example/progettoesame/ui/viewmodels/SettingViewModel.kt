@@ -28,10 +28,9 @@ class SettingViewModel(private val authRepository: AuthRepository, private val t
             try {
                 authRepository.logout()
                 AuthState.setLoggedOut()
-                onSuccess() // Naviga solo dopo che lo stato è cambiato
-                //clearError() //forse è da togliere
+                onSuccess()
             } catch (e: Exception) {
-                //_errorMessage.value = e.message ?: "Errore durante il logout"
+                e.printStackTrace()
             }
         }
     }

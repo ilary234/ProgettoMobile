@@ -34,8 +34,7 @@ import org.koin.androidx.workmanager.dsl.worker
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val Context.dataStore by
-preferencesDataStore("theme")
+val Context.dataStore by preferencesDataStore("theme")
 val appModule = module {
     single {
         createSupabaseClient(
