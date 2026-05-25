@@ -42,6 +42,13 @@ class ProfileViewModel(
     private val _isOwnProfile = MutableStateFlow(false)
     val isOwnProfile = _isOwnProfile.asStateFlow()
 
+    private val _isRecipeDeleted = MutableStateFlow(false)
+    val isRecipeDeleted = _isRecipeDeleted.asStateFlow()
+
+    fun resetDeleteState() {
+        _isRecipeDeleted.value = false
+    }
+
     fun loadProfile(profileUserId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -141,6 +148,8 @@ class ProfileViewModel(
                 val updatedFavorites = _favoriteRecipes.value.toMutableMap()
                 updatedFavorites.remove(recipe)
                 _favoriteRecipes.value = updatedFavorites
+
+                _isRecipeDeleted.value = true
             }
         }
     )

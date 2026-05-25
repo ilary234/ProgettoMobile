@@ -3,6 +3,7 @@
 package com.example.progettoesame.ui.screens
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -65,6 +66,7 @@ fun ProfileScreen(
     val userRecipes by profileViewModel.userRecipes.collectAsStateWithLifecycle()
     val favoriteRecipes by profileViewModel.favoriteRecipes.collectAsStateWithLifecycle()
     val isOwnProfile by profileViewModel.isOwnProfile.collectAsStateWithLifecycle()
+    val isRecipeDeleted by profileViewModel.isRecipeDeleted.collectAsState()
 
     var showLoginDialog by remember { mutableStateOf(false) }
 
@@ -78,6 +80,21 @@ fun ProfileScreen(
     val appBackgroundColor = if (isDark) Color.Black else Color.White
     val appTextColor = if (isDark) Color.White else Color.Black
     val containerSectionColor = if (isDark) currentPastel.darkColor else currentPastel.lightColor
+
+    val handleBackNavigation = {
+        if (isRecipeDeleted) {
+            profileViewModel.resetDeleteState()
+            navController.navigate(NavigationRoute.Home) {
+                popUpTo(NavigationRoute.Home) { inclusive = true }
+            }
+        } else {
+            navController.popBackStack()
+        }
+    }
+
+    BackHandler {
+        handleBackNavigation()
+    }
 
     val pickMediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -150,7 +167,7 @@ fun ProfileScreen(
             CenterAlignedTopAppBar(
                 title = { Text(text = "Profilo", color = appTextColor, fontWeight = FontWeight.SemiBold, fontSize = 20.sp) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { handleBackNavigation() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Indietro", tint = appTextColor)
                     }
                 },
