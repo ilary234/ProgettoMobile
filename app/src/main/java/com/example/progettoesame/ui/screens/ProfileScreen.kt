@@ -513,8 +513,9 @@ fun ProfileRecipeCard(
                     )
                 }
                 Spacer(modifier = Modifier.width(4.dp))
+                val formattedRating = String.format(java.util.Locale.US, "%.1f", recipe.averageRating)
                 Text(
-                    text = recipe.averageRating.toString(),
+                    text = formattedRating,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     fontSize = 12.sp
