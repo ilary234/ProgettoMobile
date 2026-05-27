@@ -631,7 +631,7 @@ fun StepItem(number: Int, description: String,
 
     OutlinedTextField(
         value = description,
-        onValueChange = { onDescriptionChange(it) },
+        onValueChange = { onDescriptionChange(it.trimEnd()) },
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text("Descrizione") },
         minLines = 4,

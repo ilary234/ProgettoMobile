@@ -12,7 +12,6 @@ import com.example.progettoesame.data.repositories.UserRepository
 import com.example.progettoesame.ui.utils.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ProfileActions(

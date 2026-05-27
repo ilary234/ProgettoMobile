@@ -217,7 +217,7 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
