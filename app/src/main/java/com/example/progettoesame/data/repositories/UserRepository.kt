@@ -3,10 +3,9 @@ package com.example.progettoesame.data.repositories
 import com.example.progettoesame.data.database.User
 import com.example.progettoesame.data.database.daos.RecipeDAO
 import com.example.progettoesame.data.database.daos.UserDAO
-import com.example.progettoesame.data.database.daos.UserRatedDAO
 import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 
-class UserRepository(private val userDAO: UserDAO, private val recipeDAO: RecipeDAO, private val userRatedDAO: UserRatedDAO) {
+class UserRepository(private val userDAO: UserDAO, private val recipeDAO: RecipeDAO) {
     suspend fun getUserById(userId: String): User? = userDAO.getUserById(userId)
     suspend fun upsertUser(user: User) = userDAO.upsert(user)
     suspend fun updateProfileImage(userId: String, imageUrl: String?): User {

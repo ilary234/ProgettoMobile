@@ -85,7 +85,7 @@ val appModule = module {
     single { HomeRepository(get<ProjectDatabase>().CategoryDAO(), get<ProjectDatabase>().RecipeDAO()) }
     single { ProfileRepository( get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserFavouriteDAO()) }
     single { AuthRepository(get(), get<ProjectDatabase>().UserDAO()) }
-    single { UserRepository(get<ProjectDatabase>().UserDAO(), get<ProjectDatabase>().RecipeDAO(), get<ProjectDatabase>().UserRatedDAO()) }
+    single { UserRepository(get<ProjectDatabase>().UserDAO(), get<ProjectDatabase>().RecipeDAO()) }
 
     viewModel { SettingViewModel(get(), get()) }
     viewModel { SplashViewModel(get()) }
