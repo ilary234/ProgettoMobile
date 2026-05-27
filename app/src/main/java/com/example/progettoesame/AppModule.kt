@@ -93,7 +93,7 @@ val appModule = module {
     viewModel { ProfileViewModel(get(), get(), get(), get()) }
     viewModel { CategoryViewModel(get(), get(), get()) }
     viewModel { InitialErrorViewModel(get()) }
-    viewModel { RecipeViewModel(get(), get()) }
+    viewModel { RecipeViewModel(get(), get(), get()) }
     viewModel { NewRecipeViewModel(get(), get(),get(), get(), get()) }
     viewModel { AuthViewModel(get()) }
 

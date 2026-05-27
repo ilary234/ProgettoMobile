@@ -4,13 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.progettoesame.data.SyncManager
 import com.example.progettoesame.data.database.Recipe
 import com.example.progettoesame.data.database.Step
 import com.example.progettoesame.data.repositories.RecipeRepository
 import com.example.progettoesame.data.repositories.UserRepository
+import com.example.progettoesame.ui.utils.getFormattedTimeStamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -25,9 +26,13 @@ data class RecipeActions (
     val onRate: (String, String, Int) -> Unit,
     val onToggleStep: (Step) -> Unit
 )
-class RecipeViewModel(private val recipeRepository: RecipeRepository, private val userRepository: UserRepository): ViewModel() {
+class RecipeViewModel(private val recipeRepository: RecipeRepository,
+                      private val userRepository: UserRepository,
+                      private val syncManager: SyncManager): ViewModel() {
     private var tts: TextToSpeech? = null
     private var orderedSteps : List<Step> = emptyList()
+    private var initialRate: Int = 0
+    private var initialIsFavorite: Boolean = false
 
     private val _recipe = MutableStateFlow<RecipeData?>(null)
     val recipe = _recipe.asStateFlow()
@@ -140,6 +145,8 @@ class RecipeViewModel(private val recipeRepository: RecipeRepository, private va
         viewModelScope.launch {
             _isFavorite.value = recipeRepository.isFavorite(recipeId, userId)
             _rate.value = recipeRepository.getRating(recipeId, userId) ?: 0
+            initialRate = _rate.value
+            initialIsFavorite = _isFavorite.value
         }
     }
 
@@ -172,7 +179,7 @@ class RecipeViewModel(private val recipeRepository: RecipeRepository, private va
                 else -> (currentSum + rating - _rate.value) / numberOfRatings
             }
 
-            val updatedRecipe = currentRecipe.copy(averageRating = newAverage.toFloat())
+            val updatedRecipe = currentRecipe.copy(averageRating = newAverage.toFloat(), updatedAt = getFormattedTimeStamp(), isSynced = false)
             if (_rate.value != rating) {
                 recipeRepository.updateRating(recipeId, userId, rating)
                 _rate.value = rating
@@ -188,6 +195,12 @@ class RecipeViewModel(private val recipeRepository: RecipeRepository, private va
             invertStepState(step)
         }}
     )
+
+    fun syncOnExit() {
+        if (initialRate != _rate.value || initialIsFavorite != _isFavorite.value) {
+            syncManager.triggerImmediateSync()
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

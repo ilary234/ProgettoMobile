@@ -40,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,6 +90,12 @@ fun RecipeScreen(navController: NavController, recipeViewModel: RecipeViewModel,
             recipeViewModel.getUserRecipeData(recipeId, AuthState.userId.value!!)
         }
         recipeViewModel.initTts(ctx)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            recipeViewModel.syncOnExit()
+        }
     }
 
     if(recipeState == null) {
